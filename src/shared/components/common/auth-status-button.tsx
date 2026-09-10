@@ -10,7 +10,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/src/shared/components/ui/alert-dialog";
-import { useMockSession } from "@/src/shared/store/mock-session";
+import { useAuthStore } from "@/src/shared/store/use-auth-store";
+import { useLogout } from "@/src/features/auth/hooks/use-auth";
 import { cn } from "@/src/shared/utils";
 
 export function AuthStatusButton({
@@ -20,9 +21,12 @@ export function AuthStatusButton({
   className?: string;
   onAction?: () => void;
 }) {
-  const { session, hydrated, logout } = useMockSession();
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
+  const logout = useLogout();
 
-  if (hydrated && session) {
+  if (hasHydrated && isAuthenticated && user) {
     return (
       <div className="flex items-center gap-2">
         <Link
@@ -30,7 +34,7 @@ export function AuthStatusButton({
           onClick={onAction}
           className="rounded-full border border-border/80 bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
         >
-          Tài khoản của tôi
+          {user.display_name || "Tài khoản"}
         </Link>
         <AlertDialog>
           <AlertDialogTrigger
@@ -38,37 +42,37 @@ export function AuthStatusButton({
           >
             Đăng xuất
           </AlertDialogTrigger>
-        <AlertDialogPopup>
-          <div className="flex flex-col gap-2">
-            <AlertDialogTitle>Đăng xuất khỏi Muse?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn sẽ cần đăng nhập lại để xem số điện thoại và liên hệ với
-              người đăng tin.
-            </AlertDialogDescription>
-          </div>
-          <div className="mt-6 flex justify-end gap-2">
-            <AlertDialogClose render={<Button variant="outline" />}>
-              Ở lại
-            </AlertDialogClose>
-            <AlertDialogClose
-              render={
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    logout();
-                    onAction?.();
-                  }}
-                />
-              }
-            >
-              Đăng xuất
-            </AlertDialogClose>
-          </div>
-        </AlertDialogPopup>
-      </AlertDialog>
-    </div>
-  );
-}
+          <AlertDialogPopup>
+            <div className="flex flex-col gap-2">
+              <AlertDialogTitle>Đăng xuất khỏi Muse?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Bạn sẽ cần đăng nhập lại để xem số điện thoại và liên hệ với
+                người đăng tin.
+              </AlertDialogDescription>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <AlertDialogClose render={<Button variant="outline" />}>
+                Ở lại
+              </AlertDialogClose>
+              <AlertDialogClose
+                render={
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      logout();
+                      onAction?.();
+                    }}
+                  />
+                }
+              >
+                Đăng xuất
+              </AlertDialogClose>
+            </div>
+          </AlertDialogPopup>
+        </AlertDialog>
+      </div>
+    );
+  }
 
   return (
     <Button

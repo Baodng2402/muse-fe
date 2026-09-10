@@ -16,14 +16,18 @@ import {
   UserCircleIcon,
   XIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import { useMockSession } from "@/src/shared/store/mock-session";
+import { useAuthStore } from "@/src/shared/store/use-auth-store";
+import { useLogout } from "@/src/features/auth/hooks/use-auth";
 import { cn } from "@/src/shared/utils";
 
 export function MobileNavMenu() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
-  const { session, hydrated, logout } = useMockSession();
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
+  const logout = useLogout();
 
   useEffect(() => {
     setMounted(true);
@@ -104,7 +108,7 @@ export function MobileNavMenu() {
 
               {/* User Profile Mini Badge */}
               <div className="my-4 rounded-2xl border border-border/80 bg-muted/40 p-3">
-                {hydrated && session ? (
+                {hasHydrated && isAuthenticated && user ? (
                   <div className="flex items-center gap-3">
                     <div className="relative size-10 overflow-hidden rounded-full border border-border bg-muted">
                       <Image
@@ -117,10 +121,10 @@ export function MobileNavMenu() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="text-xs font-bold text-foreground truncate">
-                        Minh Anh (Bạn)
+                        {user.display_name || "Tài khoản"} (Bạn)
                       </div>
                       <div className="text-[10px] text-muted-foreground truncate">
-                        {session.email}
+                        {user.email || user.phone || ""}
                       </div>
                     </div>
                   </div>
@@ -191,21 +195,25 @@ export function MobileNavMenu() {
             {/* Bottom Actions of Sidebar */}
             <div className="pt-4 border-t border-border/70 flex flex-col gap-2">
               <Link
-                href="/profile"
-                className="flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary/90 active:scale-98"
+                href="/posts/new"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary/90 active:scale-98 cursor-pointer"
               >
                 <PlusIcon weight="bold" className="size-4" />
-                Đăng tin tuyển mẫu
+                Đăng tin ngay
               </Link>
 
-              {hydrated && session && (
+              {hasHydrated && isAuthenticated && (
                 <button
                   type="button"
-                  onClick={() => logout()}
+                  onClick={() => {
+                    logout();
+                    setOpen(false);
+                  }}
                   className="flex items-center justify-center gap-1.5 rounded-xl border border-border py-2 text-xs font-medium text-muted-foreground hover:border-destructive/40 hover:text-destructive active:scale-98"
                 >
                   <SignOutIcon className="size-3.5" />
-                  Đăng xuất
+                  Đăng xuất ({user?.display_name || "Tài khoản"})
                 </button>
               )}
             </div>

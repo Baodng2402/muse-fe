@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { POSTS } from "@/src/features/posts/mock/posts";
+import { postsApi } from "@/src/features/posts/api/posts.api";
+import { normalizePost } from "@/src/features/posts/utils/normalize-post";
 import { PostDetailPage } from "@/src/features/posts/page/detail";
 
 export default async function PostDetail({
@@ -8,7 +9,16 @@ export default async function PostDetail({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const post = POSTS.find((item) => item.id === id);
+
+  let post = null;
+  try {
+    const rawData = await postsApi.getPostById(id);
+    if (rawData) {
+      post = normalizePost(rawData);
+    }
+  } catch {
+    notFound();
+  }
 
   if (!post) {
     notFound();

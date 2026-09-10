@@ -5,6 +5,7 @@ import { cn } from "@/src/shared/utils";
 import { SiteHeader } from "@/src/shared/components/common/site-header";
 import { SiteFooter } from "@/src/shared/components/common/site-footer";
 import { MobileBottomNav } from "@/src/shared/components/common/mobile-bottom-nav";
+import { QueryProvider } from "@/src/core/providers/query-provider";
 
 const beVietnamPro = Be_Vietnam_Pro({
   variable: "--font-be-vietnam-pro",
@@ -16,16 +17,25 @@ export const metadata: Metadata = {
   title: "Muse — Kết nối thợ làm đẹp, nhiếp ảnh với mẫu & khách hàng",
   description:
     "Muse giúp thợ và học viên makeup, nail, nhiếp ảnh đăng tin tìm mẫu hoặc nhận booking, xây dựng portfolio đáng tin cậy và kết nối trực tiếp với khách hàng.",
+  other: {
+    google: "notranslate",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="vi" className={cn("h-full", "antialiased", beVietnamPro.variable)}>
+    <html
+      lang="vi"
+      translate="no"
+      className={cn("h-full", "antialiased", beVietnamPro.variable)}
+    >
       <body className="min-h-full flex flex-col w-full max-w-full overflow-x-clip">
-        <SiteHeader />
-        <main className="flex flex-1 flex-col pb-20 sm:pb-0 w-full min-w-0 overflow-x-clip">{children}</main>
-        <SiteFooter />
-        <MobileBottomNav />
+        <QueryProvider>
+          <SiteHeader />
+          <main className="flex flex-1 flex-col pb-20 sm:pb-0 w-full min-w-0 overflow-x-clip">{children}</main>
+          <SiteFooter />
+          <MobileBottomNav />
+        </QueryProvider>
       </body>
     </html>
   );

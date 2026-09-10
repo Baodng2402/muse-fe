@@ -62,9 +62,9 @@ export function MobileBottomNav() {
         {/* 3. ĐĂNG TIN (Nút nổi bật ở giữa) */}
         <div className="flex flex-1 justify-center">
           <Link
-            href="/profile"
+            href="/posts/new"
             aria-label="Đăng tin mới"
-            className="-mt-5 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 transition-transform active:scale-95 hover:bg-primary/90"
+            className="-mt-5 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 transition-transform active:scale-95 hover:bg-primary/90 cursor-pointer"
           >
             <PlusIcon weight="bold" className="size-6" />
           </Link>
