@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { WarningCircleIcon, ArrowClockwiseIcon, HouseIcon } from '@phosphor-icons/react';
-import { Button, buttonVariants } from '@/src/shared/components/ui/button';
+import { Button, buttonVariants } from '@/src/shared/components/ui/Button';
 import { ROUTES } from '@/src/core/config/routes';
 
 interface ErrorProps {

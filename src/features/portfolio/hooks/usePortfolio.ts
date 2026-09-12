@@ -1,8 +1,8 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { portfolioApi, CreatePortfolioDTO, AddPortfolioImageDTO } from '../api/portfolio.api';
-import { portfolioKeys } from '../api/portfolio.keys';
+import { portfolioApi, CreatePortfolioDTO, AddPortfolioImageDTO } from '../api/api.portfolio';
+import { portfolioKeys } from '../api/keys.portfolio';
 
 export function useUserPortfolioQuery(userId?: string) {
   return useQuery({
@@ -51,6 +51,29 @@ export function useLikePortfolioMutation() {
 
   return useMutation({
     mutationFn: (id: string) => portfolioApi.like(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: portfolioKeys.all });
+    },
+  });
+}
+
+export function useUnlikePortfolioMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => portfolioApi.unlike(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: portfolioKeys.all });
+    },
+  });
+}
+
+export function useUpdatePortfolioMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof portfolioApi.update>[1] }) =>
+      portfolioApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: portfolioKeys.all });
     },

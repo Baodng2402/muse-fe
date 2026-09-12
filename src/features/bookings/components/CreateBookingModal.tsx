@@ -1,10 +1,22 @@
 'use client';
 
 import React, { useState } from 'react';
-import { XIcon, CalendarBlankIcon, CheckCircleIcon } from '@phosphor-icons/react/dist/ssr';
-import { Button } from '@/src/shared/components/ui/button';
-import { useCreateBookingMutation } from '../hooks/use-bookings';
-import { useAuthStore } from '@/src/shared/store/use-auth-store';
+import Link from 'next/link';
+import { CalendarBlankIcon, CheckCircleIcon } from '@phosphor-icons/react/dist/ssr';
+import { Button, buttonVariants } from '@/src/shared/components/ui/Button';
+import { Field, FieldLabel } from '@/src/shared/components/ui/Field';
+import { Input } from '@/src/shared/components/ui/Input';
+import { Textarea } from '@/src/shared/components/ui/Textarea';
+import {
+  Modal,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+} from '@/src/shared/components/ui/Modal';
+import { useCreateBookingMutation } from '../hooks/useBookings';
+import { useAuthStore } from '@/src/shared/store/store.auth';
 
 interface CreateBookingModalProps {
   isOpen: boolean;
@@ -26,8 +38,6 @@ export function CreateBookingModal({
   const [isSuccess, setIsSuccess] = useState(false);
 
   const { mutate: createBooking, isPending, error } = useCreateBookingMutation();
-
-  if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,17 +70,8 @@ export function CreateBookingModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in">
-      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-2xl animate-in zoom-in-95">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
-          aria-label="Đóng"
-        >
-          <XIcon className="size-4" />
-        </button>
-
+    <Modal open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <ModalContent>
         {isSuccess ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <CheckCircleIcon weight="fill" className="size-16 text-emerald-500 mb-3" />
@@ -79,17 +80,31 @@ export function CreateBookingModal({
               Yêu cầu của bạn đã được gửi tới {providerName}. Họ sẽ liên hệ để xác nhận lịch sớm nhất.
             </p>
           </div>
+        ) : !user ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <CalendarBlankIcon className="size-12 text-primary mb-3" />
+            <h3 className="text-base font-bold text-foreground">Đăng nhập để đặt lịch</h3>
+            <p className="mt-1 text-xs text-muted-foreground max-w-xs">
+              Vui lòng đăng nhập tài khoản để gửi yêu cầu đặt lịch hẹn với {providerName}.
+            </p>
+            <div className="mt-5">
+              <Link
+                href="/auth"
+                className={buttonVariants({ variant: 'default', size: 'default' })}
+              >
+                Đăng nhập ngay
+              </Link>
+            </div>
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div>
-              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+            <ModalHeader>
+              <ModalTitle className="flex items-center gap-2">
                 <CalendarBlankIcon className="size-5 text-primary" />
                 Đặt lịch hẹn với {providerName}
-              </h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Chọn thời gian mong muốn và gửi lời nhắn cho thợ.
-              </p>
-            </div>
+              </ModalTitle>
+              <ModalDescription>Chọn thời gian mong muốn và gửi lời nhắn cho thợ.</ModalDescription>
+            </ModalHeader>
 
             {error && (
               <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-xs text-destructive">
@@ -97,65 +112,48 @@ export function CreateBookingModal({
               </div>
             )}
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-foreground">
+            <Field>
+              <FieldLabel>
                 Thời gian bắt đầu <span className="text-destructive">*</span>
-              </label>
-              <input
+              </FieldLabel>
+              <Input
                 type="datetime-local"
                 required
                 value={scheduledStart}
                 onChange={(e) => setScheduledStart(e.target.value)}
-                className="rounded-xl border border-input bg-background px-3 py-2 text-xs font-medium text-foreground outline-none focus-visible:border-primary"
               />
-            </div>
+            </Field>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-foreground">
-                Thời gian kết thúc (tùy chọn)
-              </label>
-              <input
+            <Field>
+              <FieldLabel>Thời gian kết thúc (tùy chọn)</FieldLabel>
+              <Input
                 type="datetime-local"
                 value={scheduledEnd}
                 onChange={(e) => setScheduledEnd(e.target.value)}
-                className="rounded-xl border border-input bg-background px-3 py-2 text-xs font-medium text-foreground outline-none focus-visible:border-primary"
               />
-            </div>
+            </Field>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-foreground">
-                Ghi chú hoặc yêu cầu đặc biệt
-              </label>
-              <textarea
+            <Field>
+              <FieldLabel>Ghi chú hoặc yêu cầu đặc biệt</FieldLabel>
+              <Textarea
                 rows={3}
                 placeholder="Ví dụ: Cần tone makeup nhẹ nhàng chụp kỷ yếu..."
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                className="rounded-xl border border-input bg-background p-3 text-xs font-medium text-foreground outline-none focus-visible:border-primary resize-none"
               />
-            </div>
+            </Field>
 
-            <div className="mt-2 flex items-center justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onClose}
-                disabled={isPending}
-              >
+            <ModalFooter>
+              <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={isPending}>
                 Hủy bỏ
               </Button>
-              <Button
-                type="submit"
-                size="sm"
-                disabled={isPending || !scheduledStart}
-              >
+              <Button type="submit" size="sm" disabled={isPending || !scheduledStart}>
                 {isPending ? 'Đang gửi yêu cầu...' : 'Xác nhận đặt lịch'}
               </Button>
-            </div>
+            </ModalFooter>
           </form>
         )}
-      </div>
-    </div>
+      </ModalContent>
+    </Modal>
   );
 }

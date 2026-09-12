@@ -6,4 +6,16 @@ export const bookingsApi = {
   create: async (data: CreateBookingCommand): Promise<Booking> => {
     return httpClient.post<Booking>(API_ENDPOINTS.bookings.create, data);
   },
+  listClient: async (): Promise<Booking[]> => {
+    return httpClient.get<Booking[]>(API_ENDPOINTS.bookings.listClient);
+  },
+  listProvider: async (): Promise<Booking[]> => {
+    return httpClient.get<Booking[]>(API_ENDPOINTS.bookings.listProvider);
+  },
+  getByID: async (id: string): Promise<Booking> => {
+    return httpClient.get<Booking>(API_ENDPOINTS.bookings.get(id));
+  },
+  updateStatus: async (id: string, status: string): Promise<Booking> => {
+    return httpClient.patch<Booking>(API_ENDPOINTS.bookings.updateStatus(id), { status });
+  },
 };

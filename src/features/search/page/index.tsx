@@ -1,31 +1,49 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
   MagnifyingGlassIcon,
   XIcon,
 } from '@phosphor-icons/react/dist/ssr';
-import { usePostsQuery } from '@/src/features/posts/hooks/use-posts';
+import { usePostsQuery } from '@/src/features/posts/hooks/usePosts';
 import { normalizePost } from '@/src/features/posts/utils/normalize-post';
-import { useDebounce } from '@/src/shared/hooks/use-debounce';
-import { usePagination } from '@/src/shared/hooks/use-pagination';
-import { Pagination } from '@/src/shared/components/common/pagination';
-import { EmptyState } from '@/src/shared/components/common/empty-state';
-import { CompactPostCard } from '@/src/features/posts/components/post-card-compact';
-import { SearchDiscoveryHub } from '../components/search-discovery-hub';
+import { useDebounce } from '@/src/shared/hooks/useDebounce';
+import { usePagination } from '@/src/shared/hooks/usePagination';
+import { Pagination } from '@/src/shared/components/common/Pagination';
+import { EmptyState } from '@/src/shared/components/common/EmptyState';
+import { CompactPostCard } from '@/src/features/posts/components/PostCardCompact';
+import { SearchDiscoveryHub } from '../components/SearchDiscoveryHub';
 import { cn } from '@/src/shared/utils';
+import { STORAGE_KEYS } from '@/src/core/config/storage-keys';
+
+const MAX_RECENT_SEARCHES = 6;
 
 export function SearchPage() {
   const router = useRouter();
   const [query, setQuery] = useState('');
-  const [recentSearches, setRecentSearches] = useState<string[]>([
-    'Makeup cô dâu tone Thái',
-    'Mẫu nail quận 1',
-    'Chụp lookbook',
-  ]);
+  // Lịch sử tìm kiếm THẬT của người dùng, lưu trong localStorage — không còn seed sẵn dữ liệu giả.
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [resultFilter, setResultFilter] = useState<'all' | 'find_model' | 'booking'>('all');
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.SEARCH_HISTORY);
+      if (stored) setRecentSearches(JSON.parse(stored));
+    } catch {
+      // localStorage không khả dụng (private mode...) — bỏ qua, giữ mảng rỗng.
+    }
+  }, []);
+
+  const persistRecentSearches = (next: string[]) => {
+    setRecentSearches(next);
+    try {
+      localStorage.setItem(STORAGE_KEYS.SEARCH_HISTORY, JSON.stringify(next));
+    } catch {
+      // Bỏ qua nếu localStorage không khả dụng.
+    }
+  };
 
   const { page, pageSize, setPage, setPageSize, resetPage, getPaginationIndicators } =
     usePagination({ defaultPageSize: 12 });
@@ -51,16 +69,16 @@ export function SearchPage() {
     setQuery(kw);
     resetPage();
     if (!recentSearches.includes(kw)) {
-      setRecentSearches((prev) => [kw, ...prev.slice(0, 4)]);
+      persistRecentSearches([kw, ...recentSearches.slice(0, MAX_RECENT_SEARCHES - 1)]);
     }
   };
 
   const handleRemoveRecent = (item: string) => {
-    setRecentSearches((prev) => prev.filter((s) => s !== item));
+    persistRecentSearches(recentSearches.filter((s) => s !== item));
   };
 
   const handleClearAllRecent = () => {
-    setRecentSearches([]);
+    persistRecentSearches([]);
   };
 
   const isSearching = query.trim().length > 0;
@@ -179,13 +197,13 @@ export function SearchPage() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-64 rounded-2xl bg-muted/60 animate-pulse" />
+                <div key={i} className="h-72 rounded-2xl bg-muted/60 animate-pulse" />
               ))}
             </div>
           ) : searchResults.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {searchResults.map((post) => (
                 <CompactPostCard key={post.id} post={post} />
               ))}

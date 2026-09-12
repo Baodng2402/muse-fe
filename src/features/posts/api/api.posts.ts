@@ -7,6 +7,8 @@ import type {
   PostFilterParams,
   CreatePostDTO,
   UpdatePostDTO,
+  Region,
+  Specialty,
 } from '@/src/core/api/types';
 
 export const postsApi = {
@@ -71,14 +73,14 @@ export const postsApi = {
   /**
    * Fetches active regions.
    */
-  getRegions(): Promise<any[]> {
-    return apiClient.get<any[]>(API_ENDPOINTS.regions.list);
+  getRegions(): Promise<Region[]> {
+    return apiClient.get<Region[]>(API_ENDPOINTS.regions.list);
   },
 
   /**
    * Fetches active specialties.
    */
-  getSpecialties(): Promise<any[]> {
-    return apiClient.get<any[]>(API_ENDPOINTS.specialties.list);
+  getSpecialties(): Promise<Specialty[]> {
+    return apiClient.get<Specialty[]>(API_ENDPOINTS.specialties.list);
   },
 };

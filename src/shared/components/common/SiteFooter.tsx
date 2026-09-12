@@ -1,19 +1,9 @@
+'use client';
+
 import Link from "next/link";
-
-const SERVICES = [
-  { label: "Trang điểm dự tiệc", href: "/posts?category=makeup" },
-  { label: "Trang điểm cô dâu", href: "/posts?category=makeup" },
-  { label: "Làm nail & vẽ nghệ thuật", href: "/posts?category=nail" },
-  { label: "Nối mi & uốn mi", href: "/posts?category=nail" },
-  { label: "Chụp ảnh chân dung", href: "/posts?category=photo" },
-  { label: "Chụp ảnh concept / ngoại cảnh", href: "/posts?category=photo" },
-];
-
-const REGIONS = [
-  { label: "TP. Hồ Chí Minh", href: "/posts?city=hcm" },
-  { label: "Hà Nội", href: "/posts?city=hanoi" },
-  { label: "Đà Nẵng", href: "/posts?city=danang" },
-];
+import { usePathname } from "next/navigation";
+import { useRegionsQuery, useSpecialtiesQuery } from "@/src/shared/hooks/useMetadata";
+import { cn } from "@/src/shared/utils";
 
 const SUPPORT = [
   { label: "Về Muse", href: "/#top" },
@@ -23,11 +13,26 @@ const SUPPORT = [
 ];
 
 export function SiteFooter() {
+  const pathname = usePathname();
   const year = new Date().getFullYear();
+  const { data: specialties = [] } = useSpecialtiesQuery();
+  const { data: regions = [] } = useRegionsQuery();
+
+  // On mobile, hide the complex multi-column marketing footer on app-centric views
+  const isAppView =
+    pathname === "/account" ||
+    pathname === "/profile" ||
+    pathname.startsWith("/bookings") ||
+    pathname === "/posts/new";
 
   return (
-    <footer className="border-t border-border bg-card">
-      <div className="mx-auto w-full max-w-6xl px-4 py-8 pb-24 sm:px-6 sm:py-12 sm:pb-12">
+    <footer
+      className={cn(
+        "border-t border-border bg-card",
+        isAppView && "hidden sm:block"
+      )}
+    >
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 pb-28 sm:px-6 sm:py-12 sm:pb-12">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="flex flex-col gap-3">
@@ -43,39 +48,47 @@ export function SiteFooter() {
             </p>
           </div>
 
-          {/* Services */}
+          {/* Services — chuyên ngành thật từ API, không còn danh sách cứng */}
           <div>
             <h3 className="text-sm font-semibold text-foreground">
               Dịch vụ phổ biến
             </h3>
             <ul className="mt-3 flex flex-col gap-2">
-              {SERVICES.map((item) => (
-                <li key={item.label}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
+              {specialties.map((s) => {
+                const id = s.id || s.ID;
+                const name = s.name || s.Name;
+                return (
+                  <li key={id}>
+                    <Link
+                      href={`/posts?specialty=${id}`}
+                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      {name}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
-          {/* Regions */}
+          {/* Regions — khu vực thật từ API */}
           <div>
             <h3 className="text-sm font-semibold text-foreground">Khu vực</h3>
             <ul className="mt-3 flex flex-col gap-2">
-              {REGIONS.map((item) => (
-                <li key={item.label}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
+              {regions.map((r) => {
+                const id = r.id || r.ID;
+                const name = r.name || r.Name;
+                return (
+                  <li key={id}>
+                    <Link
+                      href={`/posts?region=${id}`}
+                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      {name}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 

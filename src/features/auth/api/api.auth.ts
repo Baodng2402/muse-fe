@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from '@/src/core/config/endpoints';
 import type {
   AuthResult,
   LoginPayload,
+  RefreshTokenPayload,
   RegisterPayload,
 } from '@/src/core/api/types';
 
@@ -19,6 +20,13 @@ export const authApi = {
    */
   register(payload: RegisterPayload): Promise<AuthResult> {
     return apiClient.post<AuthResult>(API_ENDPOINTS.auth.register, payload, { skipAuth: true });
+  },
+
+  /**
+   * Refresh auth access token.
+   */
+  refresh(payload: RefreshTokenPayload): Promise<AuthResult> {
+    return apiClient.post<AuthResult>(API_ENDPOINTS.auth.refresh, payload, { skipAuth: true });
   },
 
   /**

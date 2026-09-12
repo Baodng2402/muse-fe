@@ -9,7 +9,7 @@ import {
   MapPinIcon,
   StarIcon,
 } from '@phosphor-icons/react/dist/ssr';
-import { usePostsQuery } from '@/src/features/posts/hooks/use-posts';
+import { usePostsQuery } from '@/src/features/posts/hooks/usePosts';
 import { normalizePost } from '@/src/features/posts/utils/normalize-post';
 
 export function FeaturedArtistsSection() {
@@ -51,12 +51,6 @@ export function FeaturedArtistsSection() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {pros.map((pro) => {
-          const proImageSrc =
-            pro.imageUrl ||
-            (pro.imageId
-              ? `https://images.unsplash.com/${pro.imageId}?w=160&h=160&fit=crop&q=80&auto=format`
-              : 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=160&h=160&fit=crop&q=80');
-
           return (
             <Link
               key={pro.id}
@@ -65,7 +59,7 @@ export function FeaturedArtistsSection() {
             >
               <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-muted">
                 <Image
-                  src={proImageSrc}
+                  src={pro.imageUrl!}
                   alt={pro.title}
                   fill
                   sizes="80px"
@@ -79,10 +73,12 @@ export function FeaturedArtistsSection() {
                     {pro.author.name}
                   </span>
                   <CheckCircleIcon weight="fill" className="size-3 text-blue-500 shrink-0" />
-                  <span className="ml-auto text-[10px] font-semibold text-amber-500 flex items-center gap-0.5">
-                    <StarIcon weight="fill" className="size-2.5 text-amber-500" />
-                    {pro.author.rating}
-                  </span>
+                  {pro.author.rating != null && (
+                    <span className="ml-auto text-[10px] font-semibold text-amber-500 flex items-center gap-0.5">
+                      <StarIcon weight="fill" className="size-2.5 text-amber-500" />
+                      {pro.author.rating}
+                    </span>
+                  )}
                 </div>
 
                 <p className="mt-0.5 truncate text-xs font-medium text-foreground/90">

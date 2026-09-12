@@ -9,9 +9,11 @@ import {
   MapPinIcon,
   StarIcon,
 } from '@phosphor-icons/react/dist/ssr';
-import { usePostsQuery } from '@/src/features/posts/hooks/use-posts';
+import { usePostsQuery } from '@/src/features/posts/hooks/usePosts';
 import { normalizePost } from '@/src/features/posts/utils/normalize-post';
-import { EmptyState } from '@/src/shared/components/common/empty-state';
+import { EmptyState } from '@/src/shared/components/common/EmptyState';
+import { Avatar, AvatarFallback, AvatarImage } from '@/src/shared/components/ui/Avatar';
+import { getInitials } from '@/src/shared/utils';
 
 export function UrgentModelFeed() {
   const { data: postsData, isLoading } = usePostsQuery({
@@ -67,22 +69,16 @@ export function UrgentModelFeed() {
       ) : (
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
           {posts.map((post) => {
-            const imageSrc =
-              post.imageUrl ||
-              (post.imageId
-                ? `https://images.unsplash.com/${post.imageId}?w=400&h=533&fit=crop&q=80&auto=format`
-                : 'https://images.unsplash.com/photo-1679141335462-547b83aa99f5?w=400&h=533&fit=crop&q=80');
-
             return (
               <article
                 key={post.id}
                 className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <Link href={`/posts/${post.id}`} className="flex flex-1 flex-col">
-                  {/* Media Container 3:4 */}
-                  <div className="relative aspect-3/4 w-full overflow-hidden bg-muted">
+                  {/* Media Container — tỉ lệ chuẩn 4:5 cho card feed */}
+                  <div className="relative aspect-4/5 w-full overflow-hidden bg-muted">
                     <Image
-                      src={imageSrc}
+                      src={post.imageUrl!}
                       alt={post.title}
                       fill
                       sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
@@ -124,26 +120,19 @@ export function UrgentModelFeed() {
                   {/* Body */}
                   <div className="flex flex-1 flex-col p-2.5">
                     <div className="flex items-center gap-1.5">
-                      <div className="relative size-4.5 overflow-hidden rounded-full border border-border shrink-0">
-                        <Image
-                          src={
-                            post.author.avatarId
-                              ? `https://images.unsplash.com/${post.author.avatarId}?w=36&h=36&fit=crop&q=80&auto=format&crop=face`
-                              : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=36&h=36&fit=crop&crop=face'
-                          }
-                          alt={post.author.name}
-                          fill
-                          sizes="18px"
-                          className="object-cover"
-                        />
-                      </div>
+                      <Avatar size="xs" className="border border-border shrink-0">
+                        <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+                        <AvatarFallback className="text-[8px]">{getInitials(post.author.name)}</AvatarFallback>
+                      </Avatar>
                       <span className="truncate text-[11px] font-medium text-foreground">
                         {post.author.name}
                       </span>
-                      <span className="ml-auto text-[9px] text-muted-foreground flex items-center gap-0.5">
-                        <StarIcon weight="fill" className="size-2.5 text-amber-500" />
-                        {post.author.rating}
-                      </span>
+                      {post.author.rating != null && (
+                        <span className="ml-auto text-[9px] text-muted-foreground flex items-center gap-0.5">
+                          <StarIcon weight="fill" className="size-2.5 text-amber-500" />
+                          {post.author.rating}
+                        </span>
+                      )}
                     </div>
 
                     <h3 className="mt-1 text-xs font-semibold leading-snug text-foreground line-clamp-2">

@@ -2,121 +2,56 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowLeftIcon,
   ChatCircleDotsIcon,
-  CheckCircleIcon,
-  InstagramLogoIcon,
   MapPinIcon,
   PhoneIcon,
   ShareNetworkIcon,
   StarIcon,
+  UserCircleIcon,
 } from '@phosphor-icons/react/dist/ssr';
-import { usePostsQuery } from '@/src/features/posts/hooks/use-posts';
+import { usePostsQuery } from '@/src/features/posts/hooks/usePosts';
 import { normalizePost } from '@/src/features/posts/utils/normalize-post';
-import { PortfolioGallery, type GalleryItem } from '@/src/features/portfolio/components/portfolio-gallery';
-import { useUserPortfolioQuery } from '@/src/features/portfolio/hooks/use-portfolio';
-import { useAuthStore } from '@/src/shared/store/use-auth-store';
+import { PortfolioGallery, type GalleryItem } from '@/src/features/portfolio/components/PortfolioGallery';
+import { useUserPortfolioQuery } from '@/src/features/portfolio/hooks/usePortfolio';
+import { useUserDetailQuery } from '@/src/features/account/hooks/useUser';
+import { useAuthStore } from '@/src/shared/store/store.auth';
 import { cn } from '@/src/shared/utils';
-
-// Static profile metadata for artist showcase
-const ARTIST_METADATA: Record<string, {
-  name: string;
-  username: string;
-  title: string;
-  area: string;
-  bio: string;
-  rating: number;
-  reviewCount: number;
-  avatarId: string;
-  coverImageId: string;
-  level: string;
-  specialties: string[];
-  phone: string;
-  zaloPhone: string;
-  instagram?: string;
-  portfolio: GalleryItem[];
-}> = {
-  'thanhhuong.pro': {
-    name: 'Thanh Hương',
-    username: 'thanhhuong.pro',
-    title: 'Makeup Artist Chuyên Nghiệp',
-    area: 'TP. Thủ Đức, TP.HCM',
-    bio: 'Hơn 5 năm kinh nghiệm trang điểm cô dâu, lookbook và tiệc cao cấp. Thường xuyên tuyển mẫu layout Douyin, Thái để làm mới portfolio.',
-    rating: 5.0,
-    reviewCount: 96,
-    avatarId: 'photo-1544005313-94ddf0286df2',
-    coverImageId: 'photo-1522337360788-8b13dee7a37e',
-    level: 'Chuyên nghiệp',
-    specialties: ['Makeup cô dâu', 'Layout Douyin', 'Makeup kỷ yếu'],
-    phone: '0901234567',
-    zaloPhone: '0901234567',
-    instagram: 'thanhhuong.makeup',
-    portfolio: [
-      {
-        id: '1',
-        title: 'Tone Tây sắc sảo',
-        imageUrl: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=500&h=625&fit=crop&q=80',
-        likes: 142,
-      },
-      {
-        id: '2',
-        title: 'Layout Douyin trong trẻo',
-        imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&h=625&fit=crop&q=80',
-        likes: 98,
-      },
-      {
-        id: '3',
-        title: 'Makeup Cô dâu cổ điển',
-        imageUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=500&h=625&fit=crop&q=80',
-        likes: 215,
-      },
-    ],
-  },
-  'quangduc.photo': {
-    name: 'Quang Đức',
-    username: 'quangduc.photo',
-    title: 'Nhiếp Ảnh Gia & Retoucher',
-    area: 'Quận 3, TP.HCM',
-    bio: 'Chuyên chụp ảnh lookbook thời trang, chân dung nghệ thuật và phong cách đường phố.',
-    rating: 4.9,
-    reviewCount: 67,
-    avatarId: 'photo-1507003211169-0a1dd7228f2d',
-    coverImageId: 'photo-1643217427489-5a58ebbce99e',
-    level: 'Chuyên nghiệp',
-    specialties: ['Lookbook thời trang', 'Chân dung nghệ thuật', 'Ảnh phim'],
-    phone: '0912345678',
-    zaloPhone: '0912345678',
-    instagram: 'quangduc.visual',
-    portfolio: [
-      {
-        id: '4',
-        title: 'Lookbook Hè 2026',
-        imageUrl: 'https://images.unsplash.com/photo-1643217427489-5a58ebbce99e?w=500&h=625&fit=crop&q=80',
-        likes: 88,
-      },
-    ],
-  },
-};
+import { isAdmin, isProvider } from '@/src/shared/utils/user-roles';
+import { ProfileHero } from '@/src/shared/components/common/ProfileHero';
 
 const isUUID = (str: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
-export function ProfilePage({ username }: { username: string }) {
+const DEFAULT_COVER =
+  'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1200&h=400&fit=crop&q=80&auto=format';
+
+interface ProfilePageProps {
+  username: string;
+}
+
+export function ProfilePage({ username }: ProfilePageProps) {
   const router = useRouter();
   const currentUser = useAuthStore((s) => s.user);
   const [activeTab, setActiveTab] = useState<'portfolio' | 'posts'>('portfolio');
   const [copied, setCopied] = useState(false);
 
-  const profile = ARTIST_METADATA[username] || ARTIST_METADATA['thanhhuong.pro'];
-  const isOwner = currentUser?.id === username || currentUser?.email?.includes(username);
+  // Resolve target user ID
+  const isMe = username === 'me' || (currentUser?.id && currentUser.id === username);
+  const targetUserId = isMe ? currentUser?.id : isUUID(username) ? username : undefined;
 
-  const targetUserId = currentUser?.id === username ? currentUser.id : isUUID(username) ? username : undefined;
-  const { data: rawPortfolio } = useUserPortfolioQuery(targetUserId);
+  // Real backend queries
+  const { data: userDetail, isLoading: isUserLoading, isError: isUserError } = useUserDetailQuery(
+    targetUserId
+  );
+  const { data: rawPortfolio, isLoading: isPortfolioLoading } = useUserPortfolioQuery(targetUserId);
 
-  const apiPortfolioItems = useMemo<GalleryItem[]>(() => {
+  const isOwner = Boolean(currentUser?.id && targetUserId && currentUser.id === targetUserId);
+
+  // Parse portfolio items from backend response
+  const portfolioItems = useMemo<GalleryItem[]>(() => {
     const list = Array.isArray(rawPortfolio) ? rawPortfolio : (rawPortfolio as any)?.data;
     if (!list || !Array.isArray(list)) return [];
 
@@ -126,11 +61,12 @@ export function ProfilePage({ username }: { username: string }) {
         firstImage?.image_url ||
         firstImage?.ImageUrl ||
         item.image_url ||
-        'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=500&h=625&fit=crop&q=80';
+        DEFAULT_COVER;
 
       return {
         id: item.id || item.ID,
         title: item.title || item.Title || 'Tác phẩm',
+        description: item.description || item.Description,
         imageUrl,
         likes: item.like_count ?? item.LikeCount ?? 0,
         isLiked: item.is_liked ?? false,
@@ -138,17 +74,34 @@ export function ProfilePage({ username }: { username: string }) {
     });
   }, [rawPortfolio]);
 
-  const portfolioItems = apiPortfolioItems.length > 0 ? apiPortfolioItems : profile.portfolio;
+  // Profile fields resolution
+  const profileUser = userDetail || (isMe ? currentUser : null);
+
+  const displayName =
+    profileUser?.display_name ||
+    profileUser?.email?.split('@')[0] ||
+    (isUUID(username) ? 'Nghệ nhân' : username);
+
+  const avatarUrl = profileUser?.avatar_url;
+  const coverUrl = profileUser?.cover_url;
+  const bio = profileUser?.bio || 'Nghệ nhân chưa cập nhật tiểu sử giới thiệu.';
+  const phone = profileUser?.phone;
+  const roleBadge = isAdmin(profileUser)
+    ? 'Quản trị viên'
+    : isProvider(profileUser)
+    ? 'Nghệ nhân / Thợ'
+    : 'Thành viên';
+  const levelBadge = profileUser?.level || 'Chuyên nghiệp';
 
   // Fetch real posts by this author if available
-  const { data: postsData } = usePostsQuery({ search: profile.name });
+  const { data: postsData } = usePostsQuery({ search: displayName });
   const artistPosts = useMemo(() => {
     const rawList = Array.isArray(postsData) ? postsData : postsData?.data;
     if (rawList && Array.isArray(rawList)) {
       return rawList.map((p, idx) => normalizePost(p, idx));
     }
     return [];
-  }, [postsData, profile.name]);
+  }, [postsData, displayName]);
 
   const handleBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -165,6 +118,40 @@ export function ProfilePage({ username }: { username: string }) {
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
+  // Loading Skeleton
+  if (isUserLoading) {
+    return (
+      <div className="mx-auto w-full max-w-4xl px-3 py-4 sm:px-6 sm:py-8 animate-pulse">
+        <div className="h-6 w-24 bg-muted rounded-md mb-4" />
+        <div className="aspect-21/9 sm:aspect-4/1 w-full bg-muted rounded-3xl mb-4" />
+        <div className="h-32 w-full bg-muted rounded-2xl mb-6" />
+        <div className="h-10 w-full bg-muted rounded-xl" />
+      </div>
+    );
+  }
+
+  // Not Found State when lookup fails and not current user
+  if (targetUserId && isUserError && !profileUser) {
+    return (
+      <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center px-4 text-center">
+        <div className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-3">
+          <UserCircleIcon className="size-8" />
+        </div>
+        <h2 className="text-base font-bold text-foreground">Không tìm thấy người dùng</h2>
+        <p className="text-xs text-muted-foreground mt-1 mb-4">
+          Tài khoản không tồn tại hoặc đã ngừng hoạt động.
+        </p>
+        <button
+          type="button"
+          onClick={handleBack}
+          className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-xs cursor-pointer"
+        >
+          Quay lại danh sách
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-4xl px-3 py-4 sm:px-6 sm:py-8">
@@ -189,127 +176,63 @@ export function ProfilePage({ username }: { username: string }) {
         </button>
       </div>
 
-      {/* 2. Cover Banner & Avatar */}
-      <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-stone-900 shadow-sm">
-        <div className="relative aspect-21/9 sm:aspect-4/1 w-full overflow-hidden bg-muted">
-          <Image
-            src={`https://images.unsplash.com/${profile.coverImageId}?w=1200&h=400&fit=crop&q=80&auto=format`}
-            alt={profile.name}
-            fill
-            priority
-            sizes="(min-width: 1024px) 900px, 100vw"
-            className="object-cover filter brightness-[0.75]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-        </div>
-
-        <div className="relative -mt-10 sm:-mt-12 flex flex-col items-center px-4 pb-5 text-center sm:flex-row sm:items-end sm:text-left sm:gap-4 sm:px-6 sm:pb-6">
-          <div className="relative size-20 sm:size-24 overflow-hidden rounded-full border-4 border-background bg-card shadow-md shrink-0">
-            <Image
-              src={`https://images.unsplash.com/${profile.avatarId}?w=160&h=160&fit=crop&q=80&auto=format&crop=face`}
-              alt={profile.name}
-              fill
-              priority
-              sizes="96px"
-              className="object-cover"
-            />
-          </div>
-
-          <div className="mt-2.5 sm:mt-0 flex-1 min-w-0">
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5">
-              <h1 className="text-base sm:text-xl font-bold tracking-tight text-white">
-                {profile.name}
-              </h1>
-              <CheckCircleIcon weight="fill" className="size-4 text-blue-400 shrink-0" />
-              <span className="rounded-full bg-primary/80 px-2 py-0.5 text-[10px] font-bold text-primary-foreground backdrop-blur-md">
-                {profile.level}
+      {/* 2. Hero hồ sơ: cover + avatar + stats — dùng chung với account/page (my profile) */}
+      <ProfileHero
+        displayName={displayName}
+        coverUrl={coverUrl}
+        avatarUrl={avatarUrl}
+        verified
+        roleBadge={roleBadge}
+        levelBadge={levelBadge}
+        meta={
+          <>
+            {profileUser?.email && <p>{profileUser.email}</p>}
+            {profileUser?.region_id && (
+              <p className="flex items-center justify-center sm:justify-start gap-1 mt-1">
+                <MapPinIcon className="size-3 text-rose-400 shrink-0" />
+                Khu vực hoạt động
+              </p>
+            )}
+          </>
+        }
+        stats={[
+          { label: 'Tác phẩm', value: portfolioItems.length },
+          {
+            label: 'Đánh giá',
+            value: (
+              <span className="flex items-center justify-center gap-0.5 text-amber-500">
+                <StarIcon weight="fill" className="size-3.5" />
+                5.0
               </span>
-            </div>
-
-            <p className="text-xs text-stone-200 mt-0.5">
-              @{profile.username} · {profile.title}
-            </p>
-
-            <p className="flex items-center justify-center sm:justify-start gap-1 text-[11px] text-stone-300 mt-1">
-              <MapPinIcon className="size-3 text-rose-400 shrink-0" />
-              {profile.area}
-            </p>
-          </div>
-
-          <div className="mt-3.5 sm:mt-0 flex items-center gap-2">
-            <a
-              href={`https://zalo.me/${profile.zaloPhone}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95"
-            >
-              <ChatCircleDotsIcon weight="fill" className="size-4" />
-              Nhắn Zalo
-            </a>
-
-            <a
-              href={`tel:${profile.phone}`}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95"
-            >
-              <PhoneIcon weight="fill" className="size-4" />
-              Gọi
-            </a>
-
-            {profile.instagram && (
+            ),
+          },
+          { label: 'Bài đăng', value: artistPosts.length },
+        ]}
+        actions={
+          phone ? (
+            <>
               <a
-                href={`https://instagram.com/${profile.instagram}`}
+                href={`https://zalo.me/${phone}`}
                 target="_blank"
                 rel="noreferrer"
-                className="flex size-8 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95"
+                className="inline-flex items-center gap-1.5 rounded-full bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95"
               >
-                <InstagramLogoIcon weight="bold" className="size-4" />
+                <ChatCircleDotsIcon weight="fill" className="size-4" />
+                Nhắn Zalo
               </a>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* 3. Bio & Stats */}
-      <div className="mt-4 rounded-2xl border border-border/80 bg-card p-4 shadow-2xs flex flex-col gap-3">
-        <div className="grid grid-cols-3 divide-x divide-border/60 text-center py-1">
-          <div>
-            <div className="text-base sm:text-lg font-extrabold text-foreground">
-              {portfolioItems.length}
-            </div>
-            <div className="text-[11px] text-muted-foreground">Tác phẩm</div>
-          </div>
-          <div>
-            <div className="text-base sm:text-lg font-extrabold text-amber-500 flex items-center justify-center gap-0.5">
-              <StarIcon weight="fill" className="size-3.5 text-amber-500" />
-              {profile.rating}
-            </div>
-            <div className="text-[11px] text-muted-foreground">
-              {profile.reviewCount} đánh giá
-            </div>
-          </div>
-          <div>
-            <div className="text-base sm:text-lg font-extrabold text-foreground">
-              {artistPosts.length}
-            </div>
-            <div className="text-[11px] text-muted-foreground">Bài đăng</div>
-          </div>
-        </div>
-
-        <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed border-t border-border/50 pt-2.5">
-          {profile.bio}
-        </p>
-
-        <div className="flex flex-wrap gap-1.5 pt-1">
-          {profile.specialties.map((spec) => (
-            <span
-              key={spec}
-              className="rounded-full bg-muted/80 px-2.5 py-0.5 text-[11px] font-medium text-foreground/90"
-            >
-              #{spec}
-            </span>
-          ))}
-        </div>
-      </div>
+              <a
+                href={`tel:${phone}`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95"
+              >
+                <PhoneIcon weight="fill" className="size-4" />
+                Gọi
+              </a>
+            </>
+          ) : undefined
+        }
+        bio={bio}
+      />
 
       {/* 4. Tabs */}
       <div className="mt-6 flex border-b border-border">

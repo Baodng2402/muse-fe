@@ -1,16 +1,3 @@
-import {
-  CameraIcon,
-  PaletteIcon,
-  SprayBottleIcon,
-} from '@phosphor-icons/react/dist/ssr';
-
-export const CATEGORIES = [
-  { id: 'makeup', label: 'Makeup', icon: PaletteIcon },
-  { id: 'nail', label: 'Nail', icon: SprayBottleIcon },
-  { id: 'photo', label: 'Nhiếp ảnh', icon: CameraIcon },
-] as const;
-
-export type CategoryId = (typeof CATEGORIES)[number]['id'];
 export type PostType = 'tim-mau' | 'nhan-booking';
 
 export const TYPE_LABEL: Record<PostType, string> = {
@@ -18,30 +5,29 @@ export const TYPE_LABEL: Record<PostType, string> = {
   'nhan-booking': 'Nhận booking',
 };
 
-export const CITIES = [
-  { id: 'hcm', label: 'TP. Hồ Chí Minh' },
-  { id: 'hanoi', label: 'Hà Nội' },
-  { id: 'danang', label: 'Đà Nẵng' },
-] as const;
-
-export type CityId = (typeof CITIES)[number]['id'];
-
 export interface PostAuthor {
   id?: string;
   name: string;
-  avatarId?: string;
+  username?: string;
+  /** Ảnh đại diện thật của tác giả (author_avatar từ backend) — không có thì dùng AvatarFallback. */
+  avatarUrl?: string;
   level: 'Học viên' | 'Có kinh nghiệm' | 'Chuyên nghiệp' | string;
-  rating: number;
-  reviewCount: number;
+  /** Chưa có hệ thống review thật — chỉ set khi backend trả về, không bịa số. */
+  rating?: number;
+  reviewCount?: number;
 }
 
 export interface Post {
   id: string;
   type: PostType;
-  category: CategoryId;
+  /** ID/tên chuyên ngành thật từ backend (specialty_id/specialty_name) — không suy đoán từ tiêu đề. */
+  specialtyId?: string;
+  specialtyName?: string;
   title: string;
+  /** Tên khu vực thật (region_name) để hiển thị. */
   area: string;
-  city: CityId;
+  /** ID khu vực thật (region_id) để lọc theo server. */
+  regionId?: string;
   offer: string;
   date: string;
   description: string;
@@ -54,9 +40,8 @@ export interface Post {
   priceDisplay?: string;
   isUrgent?: boolean;
   isSaved?: boolean;
-  timingCategory?: 'today' | 'weekend' | 'flexible';
-  phone: string;
-  imageId?: string;
+  /** Chỉ có khi backend trả về SĐT thật của tác giả — không bịa số mặc định. */
+  phone?: string;
   imageUrl?: string;
   author: PostAuthor;
 }

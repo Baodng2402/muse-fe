@@ -11,6 +11,13 @@ export const usersApi = {
   },
 
   /**
+   * Fetch public profile of a user by ID.
+   */
+  getUserById(id: string): Promise<UserDTO> {
+    return apiClient.get<UserDTO>(API_ENDPOINTS.users.byId(id));
+  },
+
+  /**
    * Update current authenticated user's profile.
    */
   updateProfile(payload: UpdateUserProfileDTO): Promise<UserDTO> {

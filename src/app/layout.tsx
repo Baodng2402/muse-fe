@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Be_Vietnam_Pro } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/src/shared/utils";
-import { SiteHeader } from "@/src/shared/components/common/site-header";
-import { SiteFooter } from "@/src/shared/components/common/site-footer";
-import { MobileBottomNav } from "@/src/shared/components/common/mobile-bottom-nav";
+import { SiteHeader } from "@/src/shared/components/common/SiteHeader";
+import { SiteFooter } from "@/src/shared/components/common/SiteFooter";
+import { MobileBottomNav } from "@/src/shared/components/common/MobileBottomNav";
 import { QueryProvider } from "@/src/core/providers/query-provider";
 
 const beVietnamPro = Be_Vietnam_Pro({

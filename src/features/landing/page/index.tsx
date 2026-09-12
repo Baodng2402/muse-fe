@@ -1,10 +1,10 @@
 'use client';
 
-import { EditorialHeroBanner } from '../components/editorial-hero-banner';
-import { StoryCategoriesBar } from '../components/story-categories-bar';
-import { UrgentModelFeed } from '../components/urgent-model-feed';
-import { FeaturedArtistsSection } from '../components/featured-artists-section';
-import { WhyMuseBento } from '../components/why-muse-bento';
+import { EditorialHeroBanner } from '../components/EditorialHeroBanner';
+import { StoryCategoriesBar } from '../components/StoryCategoriesBar';
+import { UrgentModelFeed } from '../components/UrgentModelFeed';
+import { FeaturedArtistsSection } from '../components/FeaturedArtistsSection';
+import { WhyMuseBento } from '../components/WhyMuseBento';
 
 export function LandingPage() {
   return (

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { MagnifyingGlassIcon, HouseIcon } from '@phosphor-icons/react/dist/ssr';
-import { buttonVariants } from '@/src/shared/components/ui/button';
+import { buttonVariants } from '@/src/shared/components/ui/Button';
 import { ROUTES } from '@/src/core/config/routes';
 
 export default function NotFoundPage() {

@@ -11,9 +11,10 @@ import {
   ShareNetworkIcon,
   FlagIcon,
 } from '@phosphor-icons/react/dist/ssr';
-import { Button } from '@/src/shared/components/ui/button';
+import { Button } from '@/src/shared/components/ui/Button';
 import { cn } from '@/src/shared/utils';
-import { CATEGORIES, type Post } from '../types';
+import { SpecialtyIcon } from './SpecialtyIcon';
+import { type Post } from '../types';
 
 interface PostDetailHeroProps {
   post: Post;
@@ -28,20 +29,12 @@ export function PostDetailHero({
   onOpenReportModal,
   onToggleBookmark,
 }: PostDetailHeroProps) {
-  const category = CATEGORIES.find((item) => item.id === post.category);
-  const CategoryIcon = category?.icon;
-
   return (
     <div className="flex flex-col gap-6">
       {/* Main image */}
       <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl border border-border bg-muted">
         <Image
-          src={
-            (post as { imageUrl?: string }).imageUrl ||
-            (post.imageId
-              ? `https://images.unsplash.com/${post.imageId}?w=1200&h=900&fit=crop&q=80&auto=format`
-              : 'https://images.unsplash.com/photo-1679141335462-547b83aa99f5?w=1200&h=900&fit=crop&q=80')
-          }
+          src={post.imageUrl!}
           alt={post.title}
           fill
           sizes="(min-width: 1024px) 720px, 100vw"
@@ -67,10 +60,10 @@ export function PostDetailHero({
             {post.benefitTag}
           </span>
         )}
-        {category && CategoryIcon && (
+        {post.specialtyName && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <CategoryIcon className="size-3.5" />
-            {category.label}
+            <SpecialtyIcon specialtyName={post.specialtyName} className="size-3.5" />
+            {post.specialtyName}
           </span>
         )}
       </div>
@@ -137,31 +130,32 @@ export function PostDetailHero({
         </p>
       </div>
 
-      {/* Action row — mobile only */}
-      <div className="flex items-center gap-2 lg:hidden">
+      {/* Action row — desktop only (mobile uses MobileStickyBookingBar) */}
+      <div className="hidden items-center gap-2.5 lg:flex">
         <Button
-          size="sm"
+          size="default"
           variant="outline"
           onClick={onToggleBookmark}
           className="flex-1"
         >
-          <BookmarkSimpleIcon className="size-4 mr-1" />
+          <BookmarkSimpleIcon className="size-4 mr-1.5" />
           Lưu tin
         </Button>
         <Button
-          size="sm"
+          size="default"
           variant="outline"
           onClick={onOpenShareModal}
           className="flex-1"
         >
-          <ShareNetworkIcon className="size-4 mr-1" />
+          <ShareNetworkIcon className="size-4 mr-1.5" />
           Chia sẻ
         </Button>
         <Button
-          size="sm"
+          size="default"
           variant="outline"
           onClick={onOpenReportModal}
-          className="text-muted-foreground hover:text-destructive"
+          aria-label="Báo cáo tin đăng"
+          className="text-muted-foreground hover:text-destructive px-3"
         >
           <FlagIcon className="size-4" />
         </Button>

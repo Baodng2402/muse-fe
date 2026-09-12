@@ -12,8 +12,9 @@ import {
   StarIcon,
   CheckCircleIcon,
 } from '@phosphor-icons/react/dist/ssr';
-import { cn } from '@/src/shared/utils';
-import { CATEGORIES, type Post } from '../types';
+import { cn, getInitials } from '@/src/shared/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/src/shared/components/ui/Avatar';
+import { type Post } from '../types';
 
 export function DetailedModelCard({
   post,
@@ -22,20 +23,14 @@ export function DetailedModelCard({
   post: Post;
   onToggleBookmark?: (postId: string) => void;
 }) {
-  const category = CATEGORIES.find((item) => item.id === post.category);
-  const categoryLabel = category?.label || 'Dịch vụ';
+  const categoryLabel = post.specialtyName || 'Dịch vụ';
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       {/* 1. Ảnh với badges gom gọn */}
       <Link href={`/posts/${post.id}`} className="relative aspect-16/9 w-full overflow-hidden bg-muted">
         <Image
-          src={
-            (post as { imageUrl?: string }).imageUrl ||
-            (post.imageId
-              ? `https://images.unsplash.com/${post.imageId}?w=640&h=360&fit=crop&q=80&auto=format`
-              : 'https://images.unsplash.com/photo-1679141335462-547b83aa99f5?w=640&h=360&fit=crop&q=80')
-          }
+          src={post.imageUrl!}
           alt={post.title}
           fill
           sizes="(min-width: 1024px) 33vw, 100vw"
@@ -82,19 +77,10 @@ export function DetailedModelCard({
         {/* Author row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="relative size-6 overflow-hidden rounded-full border border-border">
-              <Image
-                src={
-                  post.author.avatarId
-                    ? `https://images.unsplash.com/${post.author.avatarId}?w=48&h=48&fit=crop&q=80&auto=format&crop=face`
-                    : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=48&h=48&fit=crop&crop=face'
-                }
-                alt={post.author.name}
-                fill
-                sizes="24px"
-                className="object-cover"
-              />
-            </div>
+            <Avatar size="xs" className="border border-border">
+              <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+              <AvatarFallback className="text-[9px]">{getInitials(post.author.name)}</AvatarFallback>
+            </Avatar>
             <span className="text-xs font-semibold text-foreground">
               {post.author.name}
             </span>
@@ -102,10 +88,12 @@ export function DetailedModelCard({
               {post.author.level}
             </span>
           </div>
-          <span className="flex items-center gap-0.5 text-[11px] font-semibold text-amber-500">
-            <StarIcon weight="fill" className="size-3 text-amber-500" />
-            {post.author.rating}
-          </span>
+          {post.author.rating != null && (
+            <span className="flex items-center gap-0.5 text-[11px] font-semibold text-amber-500">
+              <StarIcon weight="fill" className="size-3 text-amber-500" />
+              {post.author.rating}
+            </span>
+          )}
         </div>
 
         {/* Title */}
@@ -169,19 +157,13 @@ export function DetailedProCard({
   post: Post;
   onToggleBookmark?: (postId: string) => void;
 }) {
-  const category = CATEGORIES.find((item) => item.id === post.category);
-  const categoryLabel = category?.label || 'Dịch vụ';
+  const categoryLabel = post.specialtyName || 'Dịch vụ';
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <Link href={`/posts/${post.id}`} className="relative aspect-16/9 w-full overflow-hidden bg-muted">
         <Image
-          src={
-            (post as { imageUrl?: string }).imageUrl ||
-            (post.imageId
-              ? `https://images.unsplash.com/${post.imageId}?w=640&h=360&fit=crop&q=80&auto=format`
-              : 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=640&h=360&fit=crop&q=80')
-          }
+          src={post.imageUrl!}
           alt={post.title}
           fill
           sizes="(min-width: 1024px) 33vw, 100vw"
@@ -206,19 +188,10 @@ export function DetailedProCard({
 
       <div className="flex flex-1 flex-col p-3.5">
         <div className="flex items-center gap-2">
-          <div className="relative size-6 overflow-hidden rounded-full border border-border">
-            <Image
-              src={
-                post.author.avatarId
-                  ? `https://images.unsplash.com/${post.author.avatarId}?w=48&h=48&fit=crop&q=80&auto=format&crop=face`
-                  : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=48&h=48&fit=crop&crop=face'
-              }
-              alt={post.author.name}
-              fill
-              sizes="24px"
-              className="object-cover"
-            />
-          </div>
+          <Avatar size="xs" className="border border-border">
+            <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+            <AvatarFallback className="text-[9px]">{getInitials(post.author.name)}</AvatarFallback>
+          </Avatar>
           <div>
             <div className="flex items-center gap-1">
               <span className="text-xs font-bold text-foreground">
@@ -228,10 +201,13 @@ export function DetailedProCard({
             </div>
             <p className="text-[10px] text-muted-foreground">{post.author.level}</p>
           </div>
-          <span className="ml-auto flex items-center gap-0.5 text-[11px] font-semibold text-amber-500">
-            <StarIcon weight="fill" className="size-3 text-amber-500" />
-            {post.author.rating} ({post.author.reviewCount})
-          </span>
+          {post.author.rating != null && (
+            <span className="ml-auto flex items-center gap-0.5 text-[11px] font-semibold text-amber-500">
+              <StarIcon weight="fill" className="size-3 text-amber-500" />
+              {post.author.rating}
+              {post.author.reviewCount != null && ` (${post.author.reviewCount})`}
+            </span>
+          )}
         </div>
 
         <Link href={`/posts/${post.id}`}>

@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
   users: {
     me: '/users/me',
     update: '/users/me',
+    byId: (id: string) => `/users/${encodeURIComponent(id)}`,
   },
   posts: {
     list: '/posts',
@@ -48,6 +49,14 @@ export const API_ENDPOINTS = {
   },
   bookings: {
     create: '/bookings',
+    listClient: '/bookings/client',
+    listProvider: '/bookings/provider',
+    get: (id: string) => `/bookings/${encodeURIComponent(id)}`,
+    updateStatus: (id: string) => `/bookings/${encodeURIComponent(id)}/status`,
+  },
+  reviews: {
+    create: (bookingId: string) => `/bookings/${encodeURIComponent(bookingId)}/reviews`,
+    userList: (userId: string) => `/users/${encodeURIComponent(userId)}/reviews`,
   },
   reports: {
     list: '/reports',

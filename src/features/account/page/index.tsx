@@ -3,24 +3,23 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
-  BookmarkSimpleIcon,
   CheckCircleIcon,
-  GearSixIcon,
-  ListDashesIcon,
-  SparkleIcon,
+  SignOutIcon,
   UserCircleIcon,
 } from '@phosphor-icons/react/dist/ssr';
-import { useAuthStore } from '@/src/shared/store/use-auth-store';
-import { useLogout, useLoginMutation } from '@/src/features/auth/hooks/use-auth';
-import { useSavedPostsQuery, usePostsQuery, useToggleSavePostMutation } from '@/src/features/posts/hooks/use-posts';
+import { useAuthStore } from '@/src/shared/store/store.auth';
+import { useLogout, useLoginMutation } from '@/src/features/auth/hooks/useAuth';
+import { useSavedPostsQuery, usePostsQuery, useToggleSavePostMutation } from '@/src/features/posts/hooks/usePosts';
 import { normalizePost } from '@/src/features/posts/utils/normalize-post';
-import { useUrlParams } from '@/src/shared/hooks/use-url-params';
-import { AccountProfileHeader } from '../components/account-profile-header';
-import { AccountSavedPostsTab } from '../components/account-saved-posts-tab';
-import { AccountMyPostsTab } from '../components/account-my-posts-tab';
-import { AccountPortfolioTab } from '../components/account-portfolio-tab';
-import { AccountSettingsTab } from '../components/account-settings-tab';
-import { useCurrentUserQuery } from '../hooks/use-user';
+import { useUserPortfolioQuery } from '@/src/features/portfolio/hooks/usePortfolio';
+import { useUrlParams } from '@/src/shared/hooks/useUrlParams';
+import { ProfileHero } from '@/src/shared/components/common/ProfileHero';
+import { AccountSavedPostsTab } from '../components/AccountSavedPostsTab';
+import { AccountMyPostsTab } from '../components/AccountMyPostsTab';
+import { AccountPortfolioTab } from '../components/AccountPortfolioTab';
+import { AccountSettingsTab } from '../components/AccountSettingsTab';
+import { useCurrentUserQuery } from '../hooks/useUser';
+import { isAdmin, isProvider } from '@/src/shared/utils/user-roles';
 import { cn } from '@/src/shared/utils';
 
 export type AccountTab = 'saved' | 'my-posts' | 'portfolio' | 'settings';
@@ -58,15 +57,22 @@ export function AccountPage() {
     return [];
   }, [apiSavedPosts]);
 
-  // Real user's authored posts from API
-  const { data: apiAllPosts, isLoading: isLoadingMyPosts } = usePostsQuery();
+  // Real user's authored posts from API (including draft and published)
+  const { data: apiMyPosts, isLoading: isLoadingMyPosts } = usePostsQuery(
+    user?.id ? { user_id: user.id, status: 'all' as any, page_size: 50 } : undefined
+  );
   const myPosts = useMemo(() => {
-    const rawList = Array.isArray(apiAllPosts) ? apiAllPosts : apiAllPosts?.data;
-    if (!rawList || !Array.isArray(rawList) || !user?.id) return [];
-    return rawList
-      .filter((p: any) => (p.user_id || p.UserID) === user.id)
-      .map((p: any, idx: number) => normalizePost(p, idx));
-  }, [apiAllPosts, user?.id]);
+    const rawList = Array.isArray(apiMyPosts) ? apiMyPosts : apiMyPosts?.data;
+    if (!rawList || !Array.isArray(rawList)) return [];
+    return rawList.map((p: any, idx: number) => normalizePost(p, idx));
+  }, [apiMyPosts]);
+
+  // Số tác phẩm portfolio — dùng cho hàng stats ở ProfileHero
+  const { data: rawPortfolio } = useUserPortfolioQuery(user?.id);
+  const portfolioCount = useMemo(() => {
+    const list = Array.isArray(rawPortfolio) ? rawPortfolio : (rawPortfolio as any)?.data;
+    return Array.isArray(list) ? list.length : 0;
+  }, [rawPortfolio]);
 
   const handleRemoveSaved = (postId: string) => {
     toggleSaveMutation.mutate({ postId, isCurrentlySaved: true });
@@ -172,76 +178,69 @@ export function AccountPage() {
     );
   }
 
-  // Authenticated Member View
+  // Authenticated Member View — cùng pattern với profile/page (hero + stats + tab underline)
+  const displayName = user.display_name || user.email?.split('@')[0] || 'Thành viên Muse';
+  const roleBadge = isAdmin(user) ? 'Quản trị viên' : isProvider(user) ? 'Nghệ nhân / Thợ' : 'Thành viên';
+
+  const TABS: { key: AccountTab; label: string; count?: number }[] = [
+    { key: 'saved', label: 'Tin đã lưu', count: savedPosts.length },
+    { key: 'my-posts', label: 'Bài đăng', count: myPosts.length },
+    { key: 'portfolio', label: 'Portfolio', count: portfolioCount },
+    { key: 'settings', label: 'Cài đặt' },
+  ];
+
   return (
     <div className="mx-auto w-full max-w-4xl px-3 py-4 sm:px-6 sm:py-8 flex flex-col gap-5">
-      <AccountProfileHeader user={user} onLogout={logout} />
+      <ProfileHero
+        displayName={displayName}
+        coverUrl={user.cover_url}
+        avatarUrl={user.avatar_url}
+        roleBadge={roleBadge}
+        meta={
+          <>
+            {user.email && <p>{user.email}</p>}
+            {user.phone && <p className="mt-0.5">{user.phone}</p>}
+          </>
+        }
+        stats={[
+          { label: 'Bài đăng', value: myPosts.length },
+          { label: 'Portfolio', value: portfolioCount },
+          { label: 'Đã lưu', value: savedPosts.length },
+        ]}
+        actions={
+          <button
+            type="button"
+            onClick={logout}
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95 cursor-pointer"
+          >
+            <SignOutIcon className="size-4" />
+            Đăng xuất
+          </button>
+        }
+      />
 
       {/* Tabs */}
-      <div className="flex rounded-2xl border border-border/70 bg-muted/50 p-1 shadow-xs">
-        <button
-          type="button"
-          onClick={() => handleTabChange('saved')}
-          className={cn(
-            'flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all cursor-pointer',
-            activeTab === 'saved'
-              ? 'bg-background text-foreground shadow-xs'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <BookmarkSimpleIcon className="size-4" />
-          <span>Tin đã lưu</span>
-          <span className="rounded-full bg-primary/10 px-1.5 py-0.2 text-[10px] text-primary">
-            {savedPosts.length}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleTabChange('my-posts')}
-          className={cn(
-            'flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all cursor-pointer',
-            activeTab === 'my-posts'
-              ? 'bg-background text-foreground shadow-xs'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <ListDashesIcon className="size-4" />
-          <span>Bài đăng của tôi</span>
-          {myPosts.length > 0 && (
-            <span className="rounded-full bg-primary/10 px-1.5 py-0.2 text-[10px] text-primary">
-              {myPosts.length}
-            </span>
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleTabChange('portfolio')}
-          className={cn(
-            'flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all cursor-pointer',
-            activeTab === 'portfolio'
-              ? 'bg-background text-foreground shadow-xs'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <SparkleIcon className="size-4" />
-          <span>Portfolio</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleTabChange('settings')}
-          className={cn(
-            'flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all cursor-pointer',
-            activeTab === 'settings'
-              ? 'bg-background text-foreground shadow-xs'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <GearSixIcon className="size-4" />
-          <span>Cài đặt</span>
-        </button>
+      <div className="flex border-b border-border">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => handleTabChange(tab.key)}
+            className={cn(
+              'flex flex-1 items-center justify-center gap-1.5 pb-2.5 text-xs sm:text-sm font-bold transition-all border-b-2 cursor-pointer',
+              activeTab === tab.key
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {tab.label}
+            {tab.count !== undefined && tab.count > 0 && (
+              <span className="rounded-full bg-primary/10 px-1.5 py-0.2 text-[10px] text-primary">
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
       {/* Tab Content */}

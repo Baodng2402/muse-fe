@@ -18,4 +18,10 @@ export const ENV = {
   API_BASE_URL: getNormalizedApiUrl(),
   IS_PRODUCTION: process.env.NODE_ENV === 'production',
   IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
+  /**
+   * Cloudinary unsigned upload — dùng cho upload ảnh thật ở portfolio/tin đăng/avatar.
+   * Rỗng nếu chưa cấu hình, xem .env.example.
+   */
+  CLOUDINARY_CLOUD_NAME: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME?.trim() || '',
+  CLOUDINARY_UPLOAD_PRESET: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET?.trim() || '',
 } as const;

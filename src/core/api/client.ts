@@ -2,7 +2,7 @@ import { ENV } from '../config/env';
 import { API_ENDPOINTS } from '../config/endpoints';
 import { AppError } from './errors';
 import type { ApiResponse, AuthResult } from './types';
-import { useAuthStore } from '@/src/shared/store/use-auth-store';
+import { useAuthStore } from '@/src/shared/store/store.auth';
 
 export interface RequestConfig extends Omit<RequestInit, 'body'> {
   params?: Record<string, unknown>;

@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@phosphor-icons/react/dist/ssr';
-import { useAuthStore } from '@/src/shared/store/use-auth-store';
-import { useToggleSavePostMutation } from '../hooks/use-posts';
-import { PostDetailHero } from '../components/post-detail-hero';
-import { PostDetailSidebar } from '../components/post-detail-sidebar';
-import { PostShareModal } from '../components/post-share-modal';
-import { CreateBookingModal } from '@/src/features/bookings/components/create-booking-modal';
-import { CreateReportModal } from '@/src/features/reports/components/create-report-modal';
+import { useAuthStore } from '@/src/shared/store/store.auth';
+import { useToggleSavePostMutation } from '../hooks/usePosts';
+import { PostDetailHero } from '../components/PostDetailHero';
+import { PostDetailSidebar } from '../components/PostDetailSidebar';
+import { PostShareModal } from '../components/PostShareModal';
+import { CreateBookingModal } from '@/src/features/bookings/components/CreateBookingModal';
+import { CreateReportModal } from '@/src/features/reports/components/CreateReportModal';
+import { MobileStickyBookingBar } from '../components/MobileStickyBookingBar';
 import type { Post } from '../types';
 
 export function PostDetailPage({ post }: { post: Post }) {
@@ -33,13 +34,9 @@ export function PostDetailPage({ post }: { post: Post }) {
   };
 
   const authorUsername =
-    post.author.name === 'Thanh Hương'
-      ? 'thanhhuong.pro'
-      : post.author.name === 'Quang Đức'
-      ? 'quangduc.photo'
-      : post.author.name === 'Minh Châu'
-      ? 'minhchau.nails'
-      : 'ngoctrinh.makeup';
+    post.author.username ||
+    post.author.name?.toLowerCase().replace(/\s+/g, '') ||
+    'muse.user';
 
   const handleToggleBookmark = () => {
     toggleSavePost({
@@ -48,17 +45,32 @@ export function PostDetailPage({ post }: { post: Post }) {
     });
   };
 
+  const currentUser = useAuthStore((s) => s.user);
+  const isAuthor = Boolean(currentUser?.id && post.author?.id && currentUser.id === post.author.id);
+
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
-      {/* Back button */}
-      <button
-        type="button"
-        onClick={handleBack}
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
-      >
-        <ArrowLeftIcon className="size-4" />
-        Quay lại
-      </button>
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10 pb-24 lg:pb-10">
+      {/* Header action bar */}
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+        >
+          <ArrowLeftIcon className="size-4" />
+          Quay lại
+        </button>
+
+        {isAuthor && (
+          <button
+            type="button"
+            onClick={() => router.push(`/posts/${post.id}/edit`)}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3.5 py-1.5 text-xs font-bold text-primary transition-all hover:bg-primary/20 active:scale-98 cursor-pointer"
+          >
+            Chỉnh sửa bài đăng
+          </button>
+        )}
+      </div>
 
       {/* 2-column layout */}
       <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
@@ -103,6 +115,14 @@ export function PostDetailPage({ post }: { post: Post }) {
         targetId={post.id}
         targetType="post"
         targetTitle={post.title}
+      />
+
+      {/* Mobile Sticky Bottom Booking Bar */}
+      <MobileStickyBookingBar
+        post={post}
+        onOpenBookingModal={() => setIsBookingModalOpen(true)}
+        onOpenShareModal={() => setIsShareModalOpen(true)}
+        onToggleBookmark={handleToggleBookmark}
       />
     </div>
   );

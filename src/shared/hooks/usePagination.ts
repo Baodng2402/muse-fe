@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import { useUrlParams } from './use-url-params';
+import { useUrlParams } from './useUrlParams';
 import type { PaginationMeta } from '@/src/core/api/types';
 
 export interface UsePaginationOptions {

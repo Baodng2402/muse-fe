@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { userKeys } from '../api/users.keys';
-import { usersApi } from '../api/users.api';
-import { useAuthStore } from '@/src/shared/store/use-auth-store';
+import { userKeys } from '../api/keys.users';
+import { usersApi } from '../api/api.users';
+import { useAuthStore } from '@/src/shared/store/store.auth';
 import type { UpdateUserProfileDTO } from '@/src/core/api/types';
 
 /**
@@ -21,6 +21,18 @@ export function useCurrentUserQuery() {
       return profile;
     },
     enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to fetch public profile of any user by their ID.
+ */
+export function useUserDetailQuery(id?: string) {
+  return useQuery({
+    queryKey: userKeys.byId(id || ''),
+    queryFn: () => usersApi.getUserById(id!),
+    enabled: Boolean(id && id.trim().length > 0),
     staleTime: 5 * 60 * 1000,
   });
 }

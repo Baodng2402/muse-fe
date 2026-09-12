@@ -4,9 +4,9 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/src/shared/components/ui/button";
-import { useAuthStore } from "@/src/shared/store/use-auth-store";
-import { useLoginMutation, useRegisterMutation } from "@/src/features/auth/hooks/use-auth";
+import { Button } from "@/src/shared/components/ui/Button";
+import { useAuthStore } from "@/src/shared/store/store.auth";
+import { useLoginMutation, useRegisterMutation } from "@/src/features/auth/hooks/useAuth";
 import {
   EnvelopeSimpleIcon,
   LockSimpleIcon,
@@ -71,8 +71,7 @@ export function AuthPage() {
           email: email.trim(),
           password,
           display_name: displayName.trim(),
-          is_provider: isProvider,
-          is_customer: true,
+          roles: isProvider ? ['provider', 'customer'] : ['customer'],
         },
         {
           onError: (err) => {

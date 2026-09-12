@@ -19,7 +19,7 @@ erDiagram
     regions ||--o{ posts : "located in"
     profiles ||--o{ posts : "author"
     posts ||--o{ post_services : "services (booking post)"
-    specialties ||--o{ posts : "for (find_model post)"
+    specialties ||--o{ posts : "for (find_model / model_available post)"
     users ||--o{ saved_posts : "bookmarks"
     posts ||--o{ saved_posts : "bookmarked by"
     posts ||--o{ interactions : "originates"
@@ -41,10 +41,12 @@ erDiagram
 -- ============================================================
 -- ENUMS
 -- ============================================================
-CREATE TYPE post_type            AS ENUM ('find_model', 'booking');
+-- 'model_available' = Loại C: mẫu/freelancer tự rao lịch rảnh để thợ/brand chủ động mời (kể cả freelance trả phí)
+CREATE TYPE post_type            AS ENUM ('find_model', 'booking', 'model_available');
 CREATE TYPE post_status          AS ENUM ('draft', 'published', 'hidden', 'closed', 'expired');
 CREATE TYPE user_level           AS ENUM ('student', 'experienced', 'professional');
-CREATE TYPE report_target_type   AS ENUM ('post', 'profile');
+-- 'user' dùng khi report thẳng vào tài khoản (thay cho 'profile'); 'booking' cho khiếu nại lịch hẹn đã chốt
+CREATE TYPE report_target_type   AS ENUM ('post', 'user', 'booking');
 CREATE TYPE report_status        AS ENUM ('pending', 'reviewed', 'actioned', 'dismissed');
 CREATE TYPE booking_status       AS ENUM ('scheduled', 'completed', 'cancelled', 'no_show');
 
@@ -117,7 +119,7 @@ CREATE TABLE posts (
   region_id          UUID NOT NULL REFERENCES regions(id),
   status             post_status NOT NULL DEFAULT 'draft',
 
-  -- Loại A: Tìm mẫu (null khi type = 'booking')
+  -- Loại A: Tìm mẫu (null khi type = 'booking'/'model_available')
   specialty_id       UUID REFERENCES specialties(id),
   practice_time      TEXT,
   discount_note      TEXT,
@@ -125,23 +127,26 @@ CREATE TABLE posts (
   slots_total        INT,
   slots_filled       INT DEFAULT 0,
 
-  -- Loại B: Nhận booking (null khi type = 'find_model')
+  -- Loại B: Nhận booking (null khi type = 'find_model'/'model_available')
+  -- Loại C (model_available) TÁI DÙNG price_min/price_max làm mức phí freelance mẫu mong muốn,
+  -- và availability làm lịch rảnh của chính mẫu — không cần cột riêng.
   availability       JSONB,   -- [{ "day_of_week": 1, "start_time": "09:00", "end_time": "18:00" }]
-  price_min          NUMERIC, -- derived từ post_services, dùng để filter giá
+  price_min          NUMERIC, -- Loại B: derived từ post_services; Loại C: mức phí freelance mẫu mong muốn
   price_max          NUMERIC,
 
   created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
   expires_at         TIMESTAMPTZ,
 
+  -- Loại A và Loại C đều cần specialty_id (loại hình mẫu: mẫu ảnh/mẫu makeup/mẫu nail...)
   CONSTRAINT chk_find_model_requires_specialty
-    CHECK (type <> 'find_model' OR specialty_id IS NOT NULL),
+    CHECK (type NOT IN ('find_model', 'model_available') OR specialty_id IS NOT NULL),
   CONSTRAINT chk_slots_not_overfilled
     CHECK (type <> 'find_model' OR slots_filled <= slots_total)
 );
 
 CREATE INDEX idx_posts_feed ON posts (status, region_id, type, created_at DESC);
-CREATE INDEX idx_posts_price ON posts (price_min, price_max) WHERE type = 'booking';
+CREATE INDEX idx_posts_price ON posts (price_min, price_max) WHERE type IN ('booking', 'model_available');
 CREATE INDEX idx_posts_availability_gin ON posts USING GIN (availability);
 
 CREATE TABLE post_services (
@@ -267,11 +272,11 @@ CREATE TABLE webhook_events (
 ## Ghi chú khi import vào drawDB
 
 Nếu công cụ import báo lỗi ở các dòng `CREATE TYPE ... AS ENUM`, xoá 6 dòng enum ở đầu và đổi các cột dùng enum sang `VARCHAR(20)`, ghi chú giá trị hợp lệ trong note của bảng:
-- `posts.type` → `find_model` / `booking`
+- `posts.type` → `find_model` / `booking` / `model_available`
 - `posts.status` → `draft` / `published` / `hidden` / `closed` / `expired`
 - `profiles.level` → `student` / `experienced` / `professional`
 - `bookings.status` → `scheduled` / `completed` / `cancelled` / `no_show`
-- `reports.target_type` → `post` / `profile`
+- `reports.target_type` → `post` / `user` / `booking`
 - `reports.status` → `pending` / `reviewed` / `actioned` / `dismissed`
 
 ## Quyết định thiết kế đã chốt
@@ -282,7 +287,8 @@ Nếu công cụ import báo lỗi ở các dòng `CREATE TYPE ... AS ENUM`, xo�
 | Vai trò user | Cột boolean `is_provider/is_customer/is_admin` trên `users`, không tách bảng role riêng | 1 tài khoản có thể vừa là thợ vừa là khách, không cần hệ thống permission phức tạp |
 | Chuyên ngành | Bảng `specialties` mở, admin CRUD được, có `is_active` để ẩn không xoá | Không phải sửa code khi thêm ngành mới, không vỡ FK dữ liệu cũ |
 | Khu vực | Cấp thành phố | Khớp giả định PRD "tập trung vài thành phố lớn" giai đoạn đầu |
-| Loại tin (A/B) | 1 bảng `posts` chung + `post_services` riêng, `post_find_model_details` gộp thẳng vào `posts` (cột nullable), `availability` gộp JSONB | Feed trang chủ query 1 bảng duy nhất; `post_services` tách riêng để filter theo giá bằng SQL thường (JSONB khó filter/index hiệu quả) |
+| Loại tin (A/B/C) | 1 bảng `posts` chung + `post_services` riêng, mọi cột đặc thù của A/B/C gộp thẳng vào `posts` (nullable), `availability` gộp JSONB | Feed trang chủ query 1 bảng duy nhất; `post_services` tách riêng để filter theo giá bằng SQL thường (JSONB khó filter/index hiệu quả) |
+| Loại C — mẫu tìm freelance | Thêm `post_type = 'model_available'` (đảo chiều Loại A: mẫu là bên đăng, không phải provider) — tái dùng `specialty_id`, `availability`, `price_min/max` của A/B thay vì cột riêng | Nền tảng cần đúng nghĩa 2 chiều: provider tìm customer/mẫu (A, B) **và** mẫu/freelancer tìm provider/brand (C) trong cùng 1 bảng `posts`, cùng 1 feed/search, không tách hệ thống riêng |
 | Review | Gắn với `bookings.id` đã `completed`, unique `(booking_id, reviewer_id)` | Chặn review ảo/spam khi 2 bên chưa từng thực sự làm việc cùng nhau |
 | Interaction vs Booking | Tách 2 bảng: `interactions` (lượt contact, nhẹ) và `bookings` (lịch hẹn thật, có giờ/dịch vụ/trạng thái) | Tên gọi khớp dữ liệu; tránh nullable tràn lan trên 1 bảng dùng cho 2 mục đích khác nhau |
 | Chat | `conversations` + `conversation_participants` (thay vì 2 cột user_a/user_b) + `messages` + `webhook_events` | `conversation_participants` cho phép `last_read_at` riêng từng người và mở rộng group chat sau này; `webhook_events` chống xử lý trùng khi provider chat gửi lại webhook |

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { CaretLeftIcon, CaretRightIcon } from '@phosphor-icons/react/dist/ssr';
-import { Button } from '@/src/shared/components/ui/button';
+import { Button } from '@/src/shared/components/ui/Button';
 import { cn } from '@/src/shared/utils';
 
 export interface PaginationProps {

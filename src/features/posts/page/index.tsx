@@ -3,34 +3,49 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { PlusIcon } from '@phosphor-icons/react/dist/ssr';
-import { buttonVariants } from '@/src/shared/components/ui/button';
-import { EmptyState } from '@/src/shared/components/common/empty-state';
-import { Pagination } from '@/src/shared/components/common/pagination';
-import { usePagination } from '@/src/shared/hooks/use-pagination';
-import { usePostsQuery, useToggleSavePostMutation } from '../hooks/use-posts';
-import { normalizePost } from '../utils/normalize-post';
-import { PostsTabHeader, type ViewMode, type ActiveTab } from '../components/posts-tab-header';
+import { buttonVariants } from '@/src/shared/components/ui/Button';
+import { EmptyState } from '@/src/shared/components/common/EmptyState';
+import { Pagination } from '@/src/shared/components/common/Pagination';
+import { usePagination } from '@/src/shared/hooks/usePagination';
 import {
-  PostsQuickFilters,
-  type TimingFilter,
-  type BenefitFilter,
-} from '../components/posts-quick-filters';
-import { PostsFilterDrawer } from '../components/posts-filter-drawer';
-import { CompactPostCard } from '../components/post-card-compact';
-import { DetailedModelCard, DetailedProCard } from '../components/post-card-detailed';
-import { useUrlParams } from '@/src/shared/hooks/use-url-params';
-import type { CategoryId, CityId, PostType } from '../types';
+  usePostsQuery,
+  useToggleSavePostMutation,
+  useRegionsQuery,
+  useSpecialtiesQuery,
+} from '../hooks/usePosts';
+import { normalizePost } from '../utils/normalize-post';
+import { PostsTabHeader, type ViewMode, type ActiveTab } from '../components/PostsTabHeader';
+import { PostsQuickFilters, type BenefitFilter } from '../components/PostsQuickFilters';
+import { PostsFilterDrawer } from '../components/PostsFilterDrawer';
+import { CompactPostCard } from '../components/PostCardCompact';
+import { DetailedModelCard, DetailedProCard } from '../components/PostCardDetailed';
+import { useUrlParams } from '@/src/shared/hooks/useUrlParams';
+import type { Region, Specialty } from '@/src/core/api/types';
 
 export function PostsPage() {
-  const { getParam, setParam } = useUrlParams();
+  const { getParam, setParams } = useUrlParams();
   const tabParam = getParam<ActiveTab>('tab');
   const activeTab: ActiveTab = tabParam === 'nhan-booking' ? 'nhan-booking' : 'tim-mau';
   const [viewMode, setViewMode] = useState<ViewMode>('2-col');
 
+  // Bộ lọc chuyên ngành/khu vực đồng bộ với URL (?specialty=...&region=...) — giống `tab`,
+  // để link từ story-bar/search-hub trỏ thẳng vào 1 bộ lọc thật, chia sẻ được qua URL.
+  const activeSpecialtyId = getParam('specialty', 'all')!;
+  const activeRegionId = getParam('region', 'all')!;
+
+  // Chuyên ngành/khu vực thật lấy từ API, không còn danh sách cứng trong code
+  const { data: rawSpecialties = [] } = useSpecialtiesQuery();
+  const { data: rawRegions = [] } = useRegionsQuery();
+  const specialties = useMemo(
+    () => (rawSpecialties as Specialty[]).map((s) => ({ id: s.id || s.ID!, name: s.name || s.Name! })),
+    [rawSpecialties]
+  );
+  const regions = useMemo(
+    () => (rawRegions as Region[]).map((r) => ({ id: r.id || r.ID!, name: r.name || r.Name! })),
+    [rawRegions]
+  );
+
   // Filters
-  const [activeCategory, setActiveCategory] = useState<'all' | CategoryId>('all');
-  const [activeCity, setActiveCity] = useState<'all' | CityId>('all');
-  const [activeTiming, setActiveTiming] = useState<TimingFilter>('all');
   const [activeBenefit, setActiveBenefit] = useState<BenefitFilter>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -38,7 +53,10 @@ export function PostsPage() {
   const { page, pageSize, setPage, setPageSize, resetPage, getPaginationIndicators } =
     usePagination({ defaultPageSize: 12 });
 
-  // TanStack Query fetching model posts (find_model)
+  const specialtyIdParam = activeSpecialtyId === 'all' ? undefined : activeSpecialtyId;
+  const regionIdParam = activeRegionId === 'all' ? undefined : activeRegionId;
+
+  // TanStack Query fetching model posts (find_model) — lọc chuyên ngành/khu vực thật ở server
   const {
     data: modelApiResponse,
     isLoading: isLoadingModel,
@@ -47,6 +65,8 @@ export function PostsPage() {
     type: 'find_model',
     page: activeTab === 'tim-mau' ? page : 1,
     page_size: activeTab === 'tim-mau' ? pageSize : 12,
+    specialty_id: specialtyIdParam,
+    region_id: regionIdParam,
   });
 
   // TanStack Query fetching pro booking posts (booking)
@@ -58,6 +78,8 @@ export function PostsPage() {
     type: 'booking',
     page: activeTab === 'nhan-booking' ? page : 1,
     page_size: activeTab === 'nhan-booking' ? pageSize : 12,
+    specialty_id: specialtyIdParam,
+    region_id: regionIdParam,
   });
 
   const apiPostsResponse = activeTab === 'tim-mau' ? modelApiResponse : proApiResponse;
@@ -94,26 +116,18 @@ export function PostsPage() {
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
-    if (activeCategory !== 'all') count++;
-    if (activeCity !== 'all') count++;
-    if (activeTiming !== 'all') count++;
+    if (activeSpecialtyId !== 'all') count++;
+    if (activeRegionId !== 'all') count++;
     if (activeBenefit !== 'all') count++;
     return count;
-  }, [activeCategory, activeCity, activeTiming, activeBenefit]);
+  }, [activeSpecialtyId, activeRegionId, activeBenefit]);
 
+  // Chuyên ngành/khu vực đã lọc ở server (specialty_id/region_id) — chỉ còn lọc quyền lợi ở
+  // client vì backend chưa hỗ trợ filter theo benefit.
   const filteredPosts = useMemo(() => {
     let result = postsSource;
 
-    if (activeCategory !== 'all') {
-      result = result.filter((post) => post.category === activeCategory);
-    }
-    if (activeCity !== 'all') {
-      result = result.filter((post) => post.city === activeCity);
-    }
     if (activeTab === 'tim-mau') {
-      if (activeTiming !== 'all') {
-        result = result.filter((post) => post.timingCategory === activeTiming);
-      }
       if (activeBenefit === 'free') {
         result = result.filter((post) => post.benefitType === 'free');
       } else if (activeBenefit === 'stipend') {
@@ -121,19 +135,17 @@ export function PostsPage() {
       }
     }
     return result;
-  }, [postsSource, activeCategory, activeCity, activeTab, activeTiming, activeBenefit]);
+  }, [postsSource, activeTab, activeBenefit]);
 
   const handleResetFilters = () => {
-    setActiveCategory('all');
-    setActiveCity('all');
-    setActiveTiming('all');
+    // Gộp 1 lần setParams — 2 lời gọi router.replace riêng rẽ trong cùng 1 handler sẽ
+    // ghi đè nhau vì cả 2 đọc cùng 1 snapshot searchParams cũ (chưa kịp re-render giữa chừng).
+    setParams({ specialty: null, region: null, page: null });
     setActiveBenefit('all');
-    resetPage();
   };
 
   const handleTabChange = (tab: ActiveTab) => {
-    setParam('tab', tab === 'tim-mau' ? null : tab, { replace: false });
-    resetPage();
+    setParams({ tab: tab === 'tim-mau' ? null : tab, page: null }, { replace: false });
   };
 
   const paginationMeta =
@@ -158,20 +170,15 @@ export function PostsPage() {
       <div className="mt-3">
         <PostsQuickFilters
           activeTab={activeTab}
-          activeCategory={activeCategory}
-          onCategoryChange={(c) => {
-            setActiveCategory(c);
-            resetPage();
+          specialties={specialties}
+          activeSpecialtyId={activeSpecialtyId}
+          onSpecialtyChange={(id) => {
+            setParams({ specialty: id === 'all' ? null : id, page: null });
           }}
-          activeCity={activeCity}
-          onCityChange={(c) => {
-            setActiveCity(c);
-            resetPage();
-          }}
-          activeTiming={activeTiming}
-          onTimingChange={(t) => {
-            setActiveTiming(t);
-            resetPage();
+          regions={regions}
+          activeRegionId={activeRegionId}
+          onRegionChange={(id) => {
+            setParams({ region: id === 'all' ? null : id, page: null });
           }}
           activeBenefit={activeBenefit}
           onBenefitChange={(b) => {
@@ -186,16 +193,17 @@ export function PostsPage() {
 
         <PostsFilterDrawer
           isOpen={isFilterOpen}
+          onClose={() => setIsFilterOpen(false)}
           activeTab={activeTab}
-          activeCategory={activeCategory}
-          onCategoryChange={(c) => {
-            setActiveCategory(c);
-            resetPage();
+          specialties={specialties}
+          activeSpecialtyId={activeSpecialtyId}
+          onSpecialtyChange={(id) => {
+            setParams({ specialty: id === 'all' ? null : id, page: null });
           }}
-          activeCity={activeCity}
-          onCityChange={(c) => {
-            setActiveCity(c);
-            resetPage();
+          regions={regions}
+          activeRegionId={activeRegionId}
+          onRegionChange={(id) => {
+            setParams({ region: id === 'all' ? null : id, page: null });
           }}
           activeBenefit={activeBenefit}
           onBenefitChange={(b) => {
@@ -266,13 +274,19 @@ export function PostsPage() {
           className="mt-8"
         />
       ) : viewMode === '2-col' ? (
-        <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 lg:gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {filteredPosts.map((post) => (
-            <CompactPostCard key={post.id} post={post} />
+            <CompactPostCard
+              key={post.id}
+              post={post}
+              onToggleBookmark={(id) =>
+                toggleSavePost({ postId: id, isCurrentlySaved: Boolean(post.isSaved) })
+              }
+            />
           ))}
         </div>
       ) : (
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredPosts.map((post) =>
             post.type === 'tim-mau' ? (
               <DetailedModelCard

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr";
-import { AuthStatusButton } from "@/src/shared/components/common/auth-status-button";
-import { MobileNavMenu } from "@/src/shared/components/common/mobile-nav-menu";
+import { AuthStatusButton } from "@/src/shared/components/common/AuthStatusButton";
+import { MobileNavMenu } from "@/src/shared/components/common/MobileNavMenu";
 
 const SECTION_LINKS = [
   { href: "/#cach-hoat-dong", label: "Cách hoạt động" },
   { href: "/posts", label: "Kèo tuyển mẫu" },
+  { href: "/bookings", label: "Lịch hẹn" },
   { href: "/search", label: "Tìm kiếm" },
 ];
 
@@ -33,13 +34,13 @@ export function SiteHeader() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           {/* Nút Đăng tin ngay: chuẩn link /posts/new, hiển thị đẹp mắt trên cả desktop & mobile */}
           <Link
             href="/posts/new"
-            className="inline-flex h-8.5 items-center gap-1.5 rounded-xl bg-primary px-3 sm:px-3.5 text-xs font-bold text-primary-foreground shadow-xs shadow-primary/20 transition-all hover:bg-primary/90 active:scale-95 cursor-pointer shrink-0"
+            className="inline-flex h-9 sm:h-10 items-center gap-1.5 rounded-xl bg-primary px-3.5 sm:px-4 text-xs sm:text-sm font-bold text-primary-foreground shadow-xs shadow-primary/20 transition-all hover:bg-primary/90 active:scale-[0.98] cursor-pointer shrink-0"
           >
-            <PlusIcon weight="bold" className="size-3.5" />
+            <PlusIcon weight="bold" className="size-4" />
             <span>Đăng tin ngay</span>
           </Link>
 

@@ -6,10 +6,11 @@
 Hiện tại, các thợ (và người đang học nghề) makeup, nail, photographer tại Việt Nam chủ yếu dùng Facebook để đăng bài tìm mẫu thực hành hoặc tìm khách hàng booking. Cách làm này có nhiều hạn chế: tin đăng dễ trôi, khó tìm kiếm/lọc theo nhu cầu, không có nơi tập trung portfolio đáng tin cậy để đánh giá tay nghề.
 
 ### 1.2 Mục tiêu sản phẩm
-Xây dựng một web app đóng vai trò nền tảng trung gian, nơi:
-- Thợ/học viên có thể đăng tin **tìm mẫu** để thực hành tay nghề.
-- Thợ chuyên nghiệp có thể đăng tin **nhận booking** để khách hàng đặt dịch vụ.
-- Portfolio của từng người được trình bày chuyên nghiệp, giúp tăng độ tin cậy và thu hút khách hàng.
+Xây dựng một web app đóng vai trò nền tảng trung gian **hai chiều** (2-sided marketplace), nơi bất kỳ bên nào cũng có thể chủ động đăng tin tìm bên còn lại — không chỉ chờ được liên hệ:
+- Thợ/học viên có thể đăng tin **tìm mẫu** để thực hành tay nghề (chiều: provider → tìm customer/mẫu).
+- Thợ chuyên nghiệp có thể đăng tin **nhận booking** để khách hàng đặt dịch vụ (chiều: provider → tìm customer, khách chủ động tìm/đặt ngược lại qua search).
+- **Mẫu/freelancer** có thể đăng tin **rảnh lịch làm mẫu** để chủ động tìm thợ/brand thuê mình — không còn giới hạn ở "làm mẫu thực hành miễn phí", mà bao gồm cả **nhận freelance có trả phí** (chiều: mẫu → tìm provider/brand).
+- Portfolio của từng người được trình bày chuyên nghiệp, giúp tăng độ tin cậy và thu hút đối tác ở cả 2 chiều.
 
 ### 1.3 Phạm vi giai đoạn đầu
 - Chỉ triển khai **web app** (responsive, dùng được trên di động qua trình duyệt).
@@ -21,7 +22,7 @@ Xây dựng một web app đóng vai trò nền tảng trung gian, nơi:
 |---|---|---|
 | Thợ/Học viên | Người làm hoặc đang học makeup, nail, photography | Tìm mẫu thực hành miễn phí/giá ưu đãi; xây dựng portfolio |
 | Thợ chuyên nghiệp | Người đã hành nghề, muốn nhận khách trả phí | Đăng dịch vụ, nhận booking, trưng bày portfolio |
-| Mẫu | Người muốn làm mẫu thực hành (thường miễn phí/giảm giá) | Tìm cơ hội làm đẹp/chụp ảnh miễn phí hoặc giá rẻ |
+| Mẫu/Freelancer | Người muốn làm mẫu — vừa thực hành (miễn phí/giảm giá) vừa **nhận freelance kiếm tiền** | Tìm cơ hội làm đẹp/chụp ảnh miễn phí/giá rẻ để có portfolio; **và/hoặc** chủ động rao lịch rảnh để thợ/brand thuê trả phí |
 | Khách hàng | Người cần thuê dịch vụ chuyên nghiệp | Tìm thợ uy tín theo khu vực, xem portfolio, đặt lịch |
 
 *Lưu ý: Một tài khoản có thể vừa là "thợ" vừa là "khách hàng" tuỳ ngữ cảnh sử dụng.*
@@ -39,8 +40,9 @@ Xây dựng một web app đóng vai trò nền tảng trung gian, nơi:
 - Hiển thị dạng gallery, xem chi tiết ảnh.
 
 ### 3.3 Đăng tin
-- **Loại A — Tìm mẫu:** dịch vụ cần thực hành, thời gian, khu vực, mức ưu đãi, yêu cầu với mẫu, số lượng slot.
-- **Loại B — Nhận booking:** danh sách dịch vụ, giá tham khảo, lịch rảnh cơ bản (theo ngày trong tuần).
+- **Loại A — Tìm mẫu** (provider đăng): dịch vụ cần thực hành, thời gian, khu vực, mức ưu đãi, yêu cầu với mẫu, số lượng slot.
+- **Loại B — Nhận booking** (provider đăng): danh sách dịch vụ, giá tham khảo, lịch rảnh cơ bản (theo ngày trong tuần).
+- **Loại C — Rảnh lịch / Tìm freelance** (mẫu/freelancer đăng, đảo chiều so với Loại A): mẫu tự rao lịch rảnh + loại hình muốn làm (mẫu ảnh, mẫu makeup, mẫu nail...) để thợ/brand chủ động liên hệ mời — bao gồm cả kỳ vọng **được trả phí** (mức giá mong muốn), không chỉ làm mẫu thực hành miễn phí. Đây là chiều còn thiếu để nền tảng thực sự 2 chiều: mẫu cũng là một bên "chào dịch vụ" chứ không chỉ bị động chờ được mời.
 
 ### 3.4 Tìm kiếm & Khám phá
 - Filter theo dịch vụ, khu vực, loại tin, mức giá.

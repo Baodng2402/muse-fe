@@ -38,6 +38,12 @@ export interface PaginationQueryParams {
 /**
  * User & Auth Domain Types
  */
+export interface SpecialtyDTO {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 export interface UserDTO {
   id: string;
   email?: string;
@@ -47,13 +53,19 @@ export interface UserDTO {
   cover_url?: string;
   bio?: string;
   region_id?: string;
-  level?: string;
-  is_provider: boolean;
-  is_customer: boolean;
-  is_admin: boolean;
-  is_verified: boolean;
-  status: string;
-  created_at: string;
+  level?: 'student' | 'experienced' | 'professional' | string;
+  roles?: string[];
+  tags?: string[];
+  specialties?: SpecialtyDTO[];
+  is_provider?: boolean;
+  is_customer?: boolean;
+  is_admin?: boolean;
+  is_verified?: boolean;
+  status?: string;
+  created_at?: string;
+  username?: string;
+  rating?: number;
+  review_count?: number;
 }
 
 export interface UpdateUserProfileDTO {
@@ -63,6 +75,11 @@ export interface UpdateUserProfileDTO {
   cover_url?: string;
   bio?: string;
   region_id?: string;
+  username?: string;
+  roles?: string[];
+  level?: string;
+  tags?: string[];
+  specialty_ids?: string[];
 }
 
 export interface AuthResult {
@@ -82,6 +99,7 @@ export interface RegisterPayload {
   password: string;
   email?: string;
   phone?: string;
+  roles?: string[];
   is_provider?: boolean;
   is_customer?: boolean;
 }
@@ -119,7 +137,7 @@ export interface Specialty {
 /**
  * Post Domain Types
  */
-export type PostType = 'find_model' | 'booking';
+export type PostType = 'find_model' | 'booking' | 'model_available';
 export type PostStatus = 'draft' | 'published' | 'hidden' | 'closed' | 'expired';
 export type UserLevel = 'student' | 'experienced' | 'professional';
 
@@ -146,6 +164,8 @@ export interface Post {
   author_name?: string;
   author_avatar?: string;
   author_level?: UserLevel;
+  author_username?: string;
+  author_phone?: string;
   image_urls?: string[];
   is_saved?: boolean;
   price_min?: number;
@@ -156,6 +176,12 @@ export interface Post {
   SlotsTotal?: number;
   slots_filled?: number;
   SlotsFilled?: number;
+  practice_time?: string;
+  PracticeTime?: string;
+  discount_note?: string;
+  DiscountNote?: string;
+  requirements_text?: string;
+  RequirementsText?: string;
   created_at?: string;
   CreatedAt?: string;
   updated_at?: string;
@@ -167,6 +193,7 @@ export interface PostFilterParams extends PaginationQueryParams {
   region_id?: string;
   specialty_id?: string;
   search?: string;
+  user_id?: string;
   status?: PostStatus;
 }
 
@@ -204,6 +231,13 @@ export interface PostDetailResponse {
   services?: PostService[];
 }
 
+export interface ServiceRequest {
+  service_name: string;
+  price_from?: number;
+  price_to?: number;
+  duration_minutes?: number;
+}
+
 export interface CreatePostDTO {
   type: PostType;
   title: string;
@@ -216,14 +250,26 @@ export interface CreatePostDTO {
   price_min?: number;
   price_max?: number;
   slots_total?: number;
+  practice_time?: string;
+  discount_note?: string;
+  requirements_text?: string;
+  availability?: Record<string, unknown>;
+  services?: ServiceRequest[];
 }
 
 export interface UpdatePostDTO {
-  title?: string;
+  title: string;
   description?: string;
   region_id?: string;
   specialty_id?: string;
   status?: PostStatus;
+  practice_time?: string;
+  discount_note?: string;
+  requirements_text?: string;
+  slots_total?: number;
+  price_min?: number;
+  price_max?: number;
+  availability?: Record<string, unknown>;
   image_urls?: string[];
 }
 
@@ -249,6 +295,14 @@ export interface PortfolioItem {
   created_at: string;
 }
 
+export interface UpdatePortfolioDTO {
+  title?: string;
+  description?: string;
+  specialty_id?: string;
+  position?: number;
+  layout?: 'single' | 'before_after' | 'grid' | string;
+}
+
 /**
  * Booking Domain Types
  */
@@ -262,6 +316,13 @@ export interface Booking {
   scheduled_end_at: string;
   status: BookingStatus;
   note?: string;
+  provider_name?: string;
+  provider_avatar?: string;
+  provider_phone?: string;
+  customer_name?: string;
+  customer_avatar?: string;
+  customer_phone?: string;
+  service_name?: string;
   created_at: string;
   updated_at: string;
 }
@@ -297,3 +358,24 @@ export interface CreateReportDTO {
   reason: string;
   description?: string;
 }
+
+/**
+ * Review Domain Types
+ */
+export interface Review {
+  id: string;
+  booking_id: string;
+  reviewer_id: string;
+  reviewee_id: string;
+  rating: number;
+  comment: string;
+  reviewer_name?: string;
+  reviewer_avatar?: string;
+  created_at: string;
+}
+
+export interface CreateReviewCommand {
+  rating: number;
+  comment: string;
+}
+

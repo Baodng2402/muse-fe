@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
-import { authApi } from '../api/auth.api';
-import { useAuthStore } from '@/src/shared/store/use-auth-store';
+import { authApi } from '../api/api.auth';
+import { useAuthStore } from '@/src/shared/store/store.auth';
 import { ROUTES } from '@/src/core/config/routes';
 import type { LoginPayload, RegisterPayload } from '@/src/core/api/types';
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/src/shared/components/ui/button";
+import { Button } from "@/src/shared/components/ui/Button";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -9,9 +9,9 @@ import {
   AlertDialogPopup,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/src/shared/components/ui/alert-dialog";
-import { useAuthStore } from "@/src/shared/store/use-auth-store";
-import { useLogout } from "@/src/features/auth/hooks/use-auth";
+} from "@/src/shared/components/ui/AlertDialog";
+import { useAuthStore } from "@/src/shared/store/store.auth";
+import { useLogout } from "@/src/features/auth/hooks/useAuth";
 import { cn } from "@/src/shared/utils";
 
 export function AuthStatusButton({

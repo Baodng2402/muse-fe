@@ -12,6 +12,7 @@ export const ROUTES = {
     list: '/posts',
     detail: (id: string) => `/posts/${encodeURIComponent(id)}`,
     create: '/posts/new',
+    edit: (id: string) => `/posts/${encodeURIComponent(id)}/edit`,
   },
   search: '/search',
   profile: {
@@ -19,4 +20,10 @@ export const ROUTES = {
     me: '/profile/me',
   },
   account: '/account',
+  bookings: '/bookings',
+  admin: {
+    reports: '/admin/reports',
+    regions: '/admin/regions',
+    specialties: '/admin/specialties',
+  },
 } as const;

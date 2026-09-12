@@ -2,7 +2,7 @@
 
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import { WarningCircleIcon, ArrowClockwiseIcon } from '@phosphor-icons/react';
-import { Button } from '@/src/shared/components/ui/button';
+import { Button } from '@/src/shared/components/ui/Button';
 
 export interface ErrorBoundaryProps {
   children: ReactNode;
@@ -60,15 +60,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         <div
           role="alert"
-          className="flex flex-col items-center justify-center p-6 my-4 rounded-2xl border border-rose-200/80 bg-rose-50/50 dark:bg-rose-950/20 dark:border-rose-900/50 text-center"
+          className="flex flex-col items-center justify-center p-6 my-4 rounded-2xl border border-destructive/20 bg-destructive/5 text-center"
         >
-          <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/40 flex items-center justify-center text-rose-600 dark:text-rose-400 mb-3">
+          <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-3">
             <WarningCircleIcon size={28} weight="bold" />
           </div>
-          <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+          <h3 className="text-base font-semibold text-foreground">
             Đã xảy ra lỗi khi tải khu vực này
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mt-1 mb-4">
+          <p className="text-xs text-muted-foreground max-w-sm mt-1 mb-4">
             {this.state.error.message || 'Hệ thống gặp sự cố tạm thời.'}
           </p>
           <Button

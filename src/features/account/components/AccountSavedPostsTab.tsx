@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BookmarkSimpleIcon, MapPinIcon } from '@phosphor-icons/react/dist/ssr';
-import { EmptyState } from '@/src/shared/components/common/empty-state';
+import { EmptyState } from '@/src/shared/components/common/EmptyState';
 import type { Post } from '@/src/features/posts/types';
 
 interface AccountSavedPostsTabProps {
@@ -51,12 +51,7 @@ export function AccountSavedPostsTab({
           <Link href={`/posts/${post.id}`} className="flex flex-1 items-center gap-3 min-w-0">
             <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-muted">
               <Image
-                src={
-                  (post as { imageUrl?: string }).imageUrl ||
-                  (post.imageId
-                    ? `https://images.unsplash.com/${post.imageId}?w=120&h=120&fit=crop&q=80`
-                    : 'https://images.unsplash.com/photo-1679141335462-547b83aa99f5?w=120&h=120&fit=crop&q=80')
-                }
+                src={post.imageUrl!}
                 alt={post.title}
                 fill
                 sizes="64px"

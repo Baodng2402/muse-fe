@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
-import { postKeys } from '../api/posts.keys';
-import { postsApi } from '../api/posts.api';
+import { postKeys } from '../api/keys.posts';
+import { postsApi } from '../api/api.posts';
 import type { PostFilterParams, CreatePostDTO, UpdatePostDTO, Post } from '@/src/core/api/types';
 
 /**

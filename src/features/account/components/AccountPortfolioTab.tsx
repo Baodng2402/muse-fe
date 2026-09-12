@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { PortfolioGallery, type GalleryItem } from '@/src/features/portfolio/components/portfolio-gallery';
-import { useUserPortfolioQuery } from '@/src/features/portfolio/hooks/use-portfolio';
+import { PortfolioGallery, type GalleryItem } from '@/src/features/portfolio/components/PortfolioGallery';
+import { useUserPortfolioQuery } from '@/src/features/portfolio/hooks/usePortfolio';
 
 interface AccountPortfolioTabProps {
   userId: string;

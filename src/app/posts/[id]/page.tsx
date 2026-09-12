@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { postsApi } from "@/src/features/posts/api/posts.api";
+import { postsApi } from "@/src/features/posts/api/api.posts";
 import { normalizePost } from "@/src/features/posts/utils/normalize-post";
 import { PostDetailPage } from "@/src/features/posts/page/detail";
 

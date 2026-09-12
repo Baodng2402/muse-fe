@@ -8,7 +8,9 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-be-vietnam-pro);
-  --font-mono: var(--font-mono);
+  /* System mono stack for tabular figures (giá, số điện thoại, số slot) — không load webfont riêng */
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -47,6 +49,18 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/**
+ * Shape rule (đọc trước khi thêm bo góc mới):
+ * - Card/button/input/modal/badge: dùng scale --radius-* phía trên. Không tự chế giá trị lẻ.
+ * - Ngoại lệ DUY NHẤT: ảnh trong lưới kiểu Instagram (profile/portfolio grid, feed thumbnail
+ *   trong lưới) — dùng rounded-none + gap-0.5, không border. Đây là chủ đích, không phải lỗi.
+ *
+ * Aspect ratio chuẩn:
+ * - aspect-[4/5]  = card feed/marketplace (landing, posts feed, search explore) — mặc định.
+ * - aspect-square = CHỈ dùng cho lưới profile/portfolio (đi kèm rounded-none ở trên).
+ * - Ngoại lệ biên tập (giữ nguyên, không đổi): hero editorial (16:10→21:9), share poster (9:14).
+ */
+
 /* ─── Light mode: Warm Rose & Soft Cream ─── */
 :root {
   --background: #faf7f5;
@@ -63,7 +77,7 @@
   --muted-foreground: #8a7e79;
   --accent: #fce8ec;
   --accent-foreground: #8b2740;
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: #dc2626;
   --border: #ebe3de;
   --input: #ebe3de;
   --ring: #b83d55;
@@ -99,9 +113,9 @@
   --muted-foreground: #a89a95;
   --accent: #3a2029;
   --accent-foreground: #f0b9c5;
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --destructive: #f87171;
+  --border: #2e2427;
+  --input: #3a2c2f;
   --ring: #e07090;
   --chart-1: #e07090;
   --chart-2: #e4b4be;
@@ -114,7 +128,7 @@
   --sidebar-primary-foreground: #151011;
   --sidebar-accent: #2a1f21;
   --sidebar-accent-foreground: #f3ece9;
-  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-border: #2e2427;
   --sidebar-ring: #e07090;
 }
 

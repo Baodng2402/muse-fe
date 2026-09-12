@@ -4,8 +4,9 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlusIcon, TrashIcon, MapPinIcon } from '@phosphor-icons/react/dist/ssr';
-import { EmptyState } from '@/src/shared/components/common/empty-state';
-import { useDeletePostMutation } from '@/src/features/posts/hooks/use-posts';
+import { AccountTabHeader } from './AccountTabHeader';
+import { EmptyState } from '@/src/shared/components/common/EmptyState';
+import { useDeletePostMutation } from '@/src/features/posts/hooks/usePosts';
 import type { Post } from '@/src/features/posts/types';
 
 interface AccountMyPostsTabProps {
@@ -32,32 +33,30 @@ export function AccountMyPostsTab({ myPosts, isLoading }: AccountMyPostsTabProps
     );
   }
 
-  if (myPosts.length === 0) {
-    return (
-      <EmptyState
-        title="Bạn chưa có bài đăng nào"
-        description="Đăng tin tuyển mẫu thực hành makeup, nail hoặc quảng bá dịch vụ làm đẹp / chụp ảnh ngay hôm nay!"
+  return (
+    <div className="flex flex-col gap-4">
+      <AccountTabHeader
+        title="Bài đăng của bạn"
+        count={myPosts.length}
+        description="Quản lý tin tuyển mẫu và tin cung cấp dịch vụ của bạn trên Muse."
         action={{
-          label: 'Tạo bài đăng mới',
+          label: 'Đăng tin mới',
           href: '/posts/new',
         }}
       />
-    );
-  }
 
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex justify-end pb-1">
-        <Link
-          href="/posts/new"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90"
-        >
-          <PlusIcon weight="bold" className="size-3.5" />
-          Đăng tin mới
-        </Link>
-      </div>
-
-      {myPosts.map((post) => (
+      {myPosts.length === 0 ? (
+        <EmptyState
+          title="Bạn chưa có bài đăng nào"
+          description="Đăng tin tuyển mẫu thực hành makeup, nail hoặc quảng bá dịch vụ làm đẹp / chụp ảnh ngay hôm nay!"
+          action={{
+            label: 'Tạo bài đăng mới ngay',
+            href: '/posts/new',
+          }}
+        />
+      ) : (
+        <div className="flex flex-col gap-3">
+          {myPosts.map((post) => (
         <div
           key={post.id}
           className="group flex items-center justify-between rounded-2xl border border-border/80 bg-card p-3 shadow-2xs transition-all hover:border-primary/40 hover:shadow-xs"
@@ -65,12 +64,7 @@ export function AccountMyPostsTab({ myPosts, isLoading }: AccountMyPostsTabProps
           <Link href={`/posts/${post.id}`} className="flex flex-1 items-center gap-3 min-w-0">
             <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-muted">
               <Image
-                src={
-                  (post as { imageUrl?: string }).imageUrl ||
-                  (post.imageId
-                    ? `https://images.unsplash.com/${post.imageId}?w=120&h=120&fit=crop&q=80`
-                    : 'https://images.unsplash.com/photo-1679141335462-547b83aa99f5?w=120&h=120&fit=crop&q=80')
-                }
+                src={post.imageUrl!}
                 alt={post.title}
                 fill
                 sizes="64px"
@@ -107,5 +101,7 @@ export function AccountMyPostsTab({ myPosts, isLoading }: AccountMyPostsTabProps
         </div>
       ))}
     </div>
-  );
+  )}
+</div>
+);
 }

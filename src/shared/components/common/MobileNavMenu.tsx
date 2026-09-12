@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BookmarkSimpleIcon,
+  CalendarCheckIcon,
   CompassIcon,
   HouseIcon,
   ListIcon,
@@ -16,9 +17,10 @@ import {
   UserCircleIcon,
   XIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import { useAuthStore } from "@/src/shared/store/use-auth-store";
-import { useLogout } from "@/src/features/auth/hooks/use-auth";
-import { cn } from "@/src/shared/utils";
+import { useAuthStore } from "@/src/shared/store/store.auth";
+import { useLogout } from "@/src/features/auth/hooks/useAuth";
+import { cn, getInitials } from "@/src/shared/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/shared/components/ui/Avatar";
 
 export function MobileNavMenu() {
   const [open, setOpen] = useState(false);
@@ -53,6 +55,7 @@ export function MobileNavMenu() {
   const NAV_ITEMS = [
     { href: "/", label: "Trang chủ", icon: HouseIcon },
     { href: "/posts", label: "Khám phá bài đăng", icon: CompassIcon },
+    { href: "/bookings", label: "Lịch hẹn & Booking", icon: CalendarCheckIcon },
     { href: "/search", label: "Tìm kiếm & Xu hướng", icon: MagnifyingGlassIcon },
     { href: "/profile", label: "Tài khoản của tôi", icon: UserCircleIcon },
   ];
@@ -84,8 +87,7 @@ export function MobileNavMenu() {
             {/* Sidebar Drawer Panel trượt từ bên phải */}
             <aside
               aria-label="Menu di động"
-              className="fixed top-0 right-0 bottom-0 z-[10000] flex w-72 max-w-[85vw] flex-col justify-between border-l border-border bg-white dark:bg-[#1a1614] p-5 shadow-2xl animate-in slide-in-from-right duration-300 overflow-y-auto"
-              style={{ backgroundColor: "var(--card, #ffffff)" }}
+              className="fixed top-0 right-0 bottom-0 z-[10000] flex w-72 max-w-[85vw] flex-col justify-between border-l border-border bg-card p-5 shadow-2xl animate-in slide-in-from-right duration-300 overflow-y-auto"
             >
             <div>
               {/* Sidebar Header */}
@@ -110,18 +112,15 @@ export function MobileNavMenu() {
               <div className="my-4 rounded-2xl border border-border/80 bg-muted/40 p-3">
                 {hasHydrated && isAuthenticated && user ? (
                   <div className="flex items-center gap-3">
-                    <div className="relative size-10 overflow-hidden rounded-full border border-border bg-muted">
-                      <Image
-                        src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&q=80&auto=format&crop=face"
-                        alt="Avatar"
-                        fill
-                        sizes="40px"
-                        className="object-cover"
-                      />
-                    </div>
+                    <Avatar className="size-10 border border-border shrink-0">
+                      <AvatarImage src={user.avatar_url} alt={user.display_name || "Avatar"} />
+                      <AvatarFallback className="text-xs font-bold">
+                        {getInitials(user.display_name || "User")}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="min-w-0 flex-1">
                       <div className="text-xs font-bold text-foreground truncate">
-                        {user.display_name || "Tài khoản"} (Bạn)
+                        {user.display_name || "Tài khoản"}
                       </div>
                       <div className="text-[10px] text-muted-foreground truncate">
                         {user.email || user.phone || ""}

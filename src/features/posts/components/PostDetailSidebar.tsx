@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import {
   BookmarkSimpleIcon,
@@ -11,8 +10,10 @@ import {
   ShareNetworkIcon,
   StarIcon,
 } from '@phosphor-icons/react/dist/ssr';
-import { Button, buttonVariants } from '@/src/shared/components/ui/button';
+import { Button, buttonVariants } from '@/src/shared/components/ui/Button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/src/shared/components/ui/Avatar';
 import { formatPhone, maskPhone } from '../utils/phone';
+import { getInitials } from '@/src/shared/utils';
 import type { Post } from '../types';
 
 interface PostDetailSidebarProps {
@@ -35,29 +36,23 @@ export function PostDetailSidebar({
   onToggleBookmark,
 }: PostDetailSidebarProps) {
   return (
-    <aside className="sticky top-20 flex flex-col gap-5">
+    <aside className="sticky top-20 hidden flex-col gap-5 lg:flex">
       {/* Author card */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="relative size-12 overflow-hidden rounded-full border border-border">
-            <Image
-              src={
-                post.author.avatarId
-                  ? `https://images.unsplash.com/${post.author.avatarId}?w=96&h=96&fit=crop&q=80&auto=format&crop=face`
-                  : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop&crop=face'
-              }
-              alt={post.author.name}
-              fill
-              sizes="48px"
-              className="object-cover"
-            />
-          </div>
+          <Avatar className="size-12 border border-border">
+            <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+            <AvatarFallback>{getInitials(post.author.name)}</AvatarFallback>
+          </Avatar>
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-semibold text-foreground">{post.author.name}</span>
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <StarIcon weight="fill" className="size-3 text-amber-500" />
-              {post.author.rating} · {post.author.reviewCount} đánh giá
-            </span>
+            {post.author.rating != null && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <StarIcon weight="fill" className="size-3 text-amber-500" />
+                {post.author.rating}
+                {post.author.reviewCount != null && ` · ${post.author.reviewCount} đánh giá`}
+              </span>
+            )}
           </div>
         </div>
         <div className="mt-3.5 flex items-center justify-between border-t border-border/50 pt-3">
@@ -80,7 +75,7 @@ export function PostDetailSidebar({
             <div>
               <p className="text-xs text-muted-foreground">Số điện thoại liên hệ</p>
               <p className="text-lg font-bold tabular-nums text-foreground mt-0.5">
-                {formatPhone(post.phone)}
+                {post.phone ? formatPhone(post.phone) : 'Chưa cập nhật'}
               </p>
             </div>
 
@@ -94,23 +89,29 @@ export function PostDetailSidebar({
                 {post.type === 'tim-mau' ? 'Đặt lịch làm mẫu ngay' : 'Đặt lịch hẹn ngay'}
               </Button>
 
-              <a
-                href={`tel:${post.phone}`}
-                className={buttonVariants({ variant: 'outline', size: 'default' })}
-              >
-                <PhoneIcon className="size-4 mr-1.5" />
-                Gọi trực tiếp
-              </a>
+              {post.phone && (
+                <a
+                  href={`tel:${post.phone}`}
+                  className={buttonVariants({ variant: 'outline', size: 'default' })}
+                >
+                  <PhoneIcon className="size-4 mr-1.5" />
+                  Gọi trực tiếp
+                </a>
+              )}
             </div>
           </>
         ) : (
           <div className="flex flex-col gap-3">
             <p className="text-xs text-muted-foreground">
-              Đăng nhập để xem số điện thoại và đặt lịch trực tiếp.
+              {post.phone
+                ? 'Đăng nhập để xem số điện thoại và đặt lịch trực tiếp.'
+                : 'Đăng nhập để đặt lịch trực tiếp với nghệ nhân.'}
             </p>
-            <p className="text-center text-sm tabular-nums text-muted-foreground font-mono bg-muted/50 py-1.5 rounded-lg">
-              {maskPhone(post.phone)}
-            </p>
+            {post.phone && (
+              <p className="text-center text-sm tabular-nums text-muted-foreground font-mono bg-muted/50 py-1.5 rounded-lg">
+                {maskPhone(post.phone)}
+              </p>
+            )}
             <Link
               href={`/auth?redirect=/posts/${post.id}`}
               className={buttonVariants({ variant: 'default', size: 'default' })}
@@ -122,31 +123,32 @@ export function PostDetailSidebar({
       </div>
 
       {/* Action buttons (desktop) */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
         <Button
-          size="sm"
+          size="default"
           variant="outline"
           onClick={onToggleBookmark}
           className="flex-1"
         >
-          <BookmarkSimpleIcon className="size-4 mr-1" />
+          <BookmarkSimpleIcon className="size-4 mr-1.5" />
           Lưu tin
         </Button>
         <Button
-          size="sm"
+          size="default"
           variant="outline"
           onClick={onOpenShareModal}
           className="flex-1"
         >
-          <ShareNetworkIcon className="size-4 mr-1" />
+          <ShareNetworkIcon className="size-4 mr-1.5" />
           Chia sẻ
         </Button>
         <Button
-          size="sm"
+          size="default"
           variant="outline"
           onClick={onOpenReportModal}
           title="Báo cáo vi phạm"
-          className="text-muted-foreground hover:text-destructive"
+          aria-label="Báo cáo vi phạm"
+          className="text-muted-foreground hover:text-destructive px-3"
         >
           <FlagIcon className="size-4" />
         </Button>

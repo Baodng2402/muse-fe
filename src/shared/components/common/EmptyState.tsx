@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { TrayIcon } from '@phosphor-icons/react/dist/ssr';
-import { buttonVariants } from '@/src/shared/components/ui/button';
+import { buttonVariants } from '@/src/shared/components/ui/Button';
 import { cn } from '@/src/shared/utils';
 
 interface EmptyStateProps {

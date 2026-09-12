@@ -10,19 +10,23 @@ import {
 } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@/src/shared/utils';
 import { PostChip } from './post-chip';
-import { CATEGORIES, CITIES, type CategoryId, type CityId, type PostType } from '../types';
+import type { PostType } from '../types';
 
-export type TimingFilter = 'all' | 'today' | 'weekend';
 export type BenefitFilter = 'all' | 'free' | 'stipend';
+
+export interface FilterOption {
+  id: string;
+  name: string;
+}
 
 interface PostsQuickFiltersProps {
   activeTab: PostType;
-  activeCategory: 'all' | CategoryId;
-  onCategoryChange: (category: 'all' | CategoryId) => void;
-  activeCity: 'all' | CityId;
-  onCityChange: (city: 'all' | CityId) => void;
-  activeTiming: TimingFilter;
-  onTimingChange: (timing: TimingFilter) => void;
+  specialties: FilterOption[];
+  activeSpecialtyId: string;
+  onSpecialtyChange: (id: string) => void;
+  regions: FilterOption[];
+  activeRegionId: string;
+  onRegionChange: (id: string) => void;
   activeBenefit: BenefitFilter;
   onBenefitChange: (benefit: BenefitFilter) => void;
   isFilterOpen: boolean;
@@ -33,12 +37,12 @@ interface PostsQuickFiltersProps {
 
 export function PostsQuickFilters({
   activeTab,
-  activeCategory,
-  onCategoryChange,
-  activeCity,
-  onCityChange,
-  activeTiming,
-  onTimingChange,
+  specialties,
+  activeSpecialtyId,
+  onSpecialtyChange,
+  regions,
+  activeRegionId,
+  onRegionChange,
   activeBenefit,
   onBenefitChange,
   isFilterOpen,
@@ -92,12 +96,7 @@ export function PostsQuickFilters({
       <div className="w-full max-w-full min-w-0 overflow-x-auto py-1 no-scrollbar [-webkit-overflow-scrolling:touch] [overscroll-behavior-x:contain]">
         <div className="flex items-center gap-1.5 w-max">
           <PostChip
-            active={
-              activeCategory === 'all' &&
-              activeTiming === 'all' &&
-              activeBenefit === 'all' &&
-              activeCity === 'all'
-            }
+            active={activeSpecialtyId === 'all' && activeBenefit === 'all' && activeRegionId === 'all'}
             onClick={onResetFilters}
           >
             Tất cả
@@ -105,18 +104,6 @@ export function PostsQuickFilters({
 
           {activeTab === 'tim-mau' && (
             <>
-              <PostChip
-                active={activeTiming === 'today'}
-                onClick={() => onTimingChange(activeTiming === 'today' ? 'all' : 'today')}
-              >
-                Hôm nay
-              </PostChip>
-              <PostChip
-                active={activeTiming === 'weekend'}
-                onClick={() => onTimingChange(activeTiming === 'weekend' ? 'all' : 'weekend')}
-              >
-                Cuối tuần
-              </PostChip>
               <PostChip
                 active={activeBenefit === 'free'}
                 onClick={() => onBenefitChange(activeBenefit === 'free' ? 'all' : 'free')}
@@ -132,23 +119,23 @@ export function PostsQuickFilters({
             </>
           )}
 
-          {CATEGORIES.map((cat) => (
+          {specialties.map((s) => (
             <PostChip
-              key={cat.id}
-              active={activeCategory === cat.id}
-              onClick={() => onCategoryChange(activeCategory === cat.id ? 'all' : cat.id)}
+              key={s.id}
+              active={activeSpecialtyId === s.id}
+              onClick={() => onSpecialtyChange(activeSpecialtyId === s.id ? 'all' : s.id)}
             >
-              {cat.label}
+              {s.name}
             </PostChip>
           ))}
 
-          {CITIES.map((city) => (
+          {regions.map((r) => (
             <PostChip
-              key={city.id}
-              active={activeCity === city.id}
-              onClick={() => onCityChange(activeCity === city.id ? 'all' : city.id)}
+              key={r.id}
+              active={activeRegionId === r.id}
+              onClick={() => onRegionChange(activeRegionId === r.id ? 'all' : r.id)}
             >
-              {city.label}
+              {r.name}
             </PostChip>
           ))}
         </div>
